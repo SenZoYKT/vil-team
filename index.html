@@ -78,6 +78,34 @@ h3 { font-size: 15px; font-weight: 700; color: #667eea; margin-bottom: 10px; tex
 .hub-stat .val { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .hub-stat .lbl { font-size: 11px; color: #6a6a7e; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 
+.side-menu-bg { display: none; position: fixed; inset: 0; background: rgba(30,20,60,0.6); z-index: 700; opacity: 0; transition: opacity 0.25s; }
+.side-menu-bg.active { display: block; opacity: 1; }
+.side-menu { position: fixed; top: 0; right: -340px; width: 320px; max-width: 88vw; height: 100vh; background: #fff; z-index: 701; box-shadow: -10px 0 40px rgba(0,0,0,0.2); transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; overflow-y: auto; }
+.side-menu.open { right: 0; }
+.side-menu-header { padding: 22px 20px 14px; border-bottom: 1px solid #eef0f6; text-align: center; }
+.side-menu-header .vil-logo svg { width: 56px; height: 56px; }
+.side-menu-header .vil-script { font-size: 20px; }
+.side-menu-header .vil-sub { font-size: 8px; }
+
+.side-menu-items { padding: 10px 0; }
+.side-item { display: flex; align-items: center; gap: 14px; width: 100%; background: none; border: none; padding: 14px 22px; font-family: inherit; font-size: 15px; font-weight: 700; color: #1a1a2e; cursor: pointer; transition: background 0.15s; text-align: left; }
+.side-item:hover { background: #f4f7ff; }
+.side-icon { font-size: 22px; width: 26px; text-align: center; flex-shrink: 0; }
+.side-text { flex: 1; }
+
+.side-menu-divider { height: 8px; background: #f4f4f8; margin: 8px 0; }
+
+.side-menu-section { padding: 14px 22px 6px; }
+.side-section-title { font-size: 11px; font-weight: 800; color: #6a6a7e; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+.side-section-text { font-size: 12.5px; color: #4a4a5e; line-height: 1.5; }
+
+.side-socials { display: flex; gap: 10px; margin-top: 4px; }
+.side-social { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: #667eea; color: #fff; text-decoration: none; transition: all 0.2s; box-shadow: 0 3px 10px rgba(102,126,234,0.3); }
+.side-social:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102,126,234,0.5); }
+.side-social svg { width: 22px; height: 22px; }
+
+.side-menu-close { margin: auto 22px 22px; padding: 12px; border: none; border-radius: 12px; background: linear-gradient(135deg, #ff4757, #ff6b7a); color: #fff; font-family: inherit; font-weight: 800; font-size: 13px; cursor: pointer; }
+
 .missions { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; margin-bottom: 25px; }
 .mission { background: rgba(255,255,255,0.95); border-radius: 22px; padding: 22px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 2px solid transparent; position: relative; overflow: hidden; }
 .mission::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #667eea, #f093fb); }
@@ -136,25 +164,50 @@ h3 { font-size: 15px; font-weight: 700; color: #667eea; margin-bottom: 10px; tex
 
 .game { display: grid; grid-template-columns: 340px 1fr 300px; gap: 18px; max-width: 1400px; margin: 0 auto; }
 .panel { background: rgba(255,255,255,0.95); border-radius: 22px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-.weather { grid-column: 1 / -1; background: rgba(255,255,255,0.95); padding: 20px 25px; border-radius: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-.weather h2 { font-size: 20px; margin-bottom: 6px; }
-.weather p { font-size: 13px; color: #6a6a7e; }
-.weather .weather-stats { color: #667eea !important; font-weight: 700 !important; margin-top: 8px !important; font-size: 14px !important; }
-.weather .layer-hint { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #fff3c0; color: #a07d00; border-radius: 10px; font-size: 12px; font-weight: 700; }
+
+.weather { grid-column: 1 / -1; background: rgba(255,255,255,0.95); padding: 18px 22px; border-radius: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: relative; overflow: hidden; min-height: 130px; border-left: 4px solid #667eea; }
+.weather-anim { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+.weather-anim.snow::before { content: ''; position: absolute; inset: -30px; background-image: radial-gradient(2px 2px at 20% 30%, #fff, transparent), radial-gradient(2px 2px at 40% 50%, #fff, transparent), radial-gradient(1px 1px at 60% 20%, #fff, transparent), radial-gradient(2px 2px at 80% 60%, #fff, transparent), radial-gradient(2px 2px at 10% 80%, #fff, transparent), radial-gradient(1px 1px at 90% 40%, #fff, transparent), radial-gradient(2px 2px at 50% 90%, #fff, transparent); background-size: 100% 200px; animation: snowfall 6s linear infinite; opacity: 0.55; }
+@keyframes snowfall { from { transform: translateY(-40px); } to { transform: translateY(40px); } }
+.weather-anim.rain::before { content: ''; position: absolute; inset: -30px; background-image: repeating-linear-gradient(100deg, rgba(120,180,255,.55) 0 1px, transparent 1px 14px); animation: rainfall .5s linear infinite; }
+@keyframes rainfall { from { transform: translate(0,0); } to { transform: translate(-20px,40px); } }
+.weather-anim.fog::before { content: ''; position: absolute; inset: -30px; background: radial-gradient(ellipse at 30% 50%, rgba(255,255,255,.55) 0%, transparent 50%), radial-gradient(ellipse at 70% 60%, rgba(255,255,255,.45) 0%, transparent 50%); animation: fogmove 10s ease-in-out infinite alternate; }
+@keyframes fogmove { from { transform: translateX(-30px); } to { transform: translateX(30px); } }
+.weather-anim.sand::before { content: ''; position: absolute; inset: -30px; background-image: radial-gradient(1px 1px at 15% 25%, rgba(255,220,150,.9), transparent), radial-gradient(1px 1px at 35% 55%, rgba(255,200,120,.8), transparent), radial-gradient(2px 2px at 65% 35%, rgba(255,220,150,.9), transparent), radial-gradient(1px 1px at 85% 65%, rgba(255,200,120,.8), transparent), radial-gradient(1px 1px at 50% 80%, rgba(255,220,150,.7), transparent); animation: sandmove 4s linear infinite; }
+@keyframes sandmove { from { transform: translate(0,0); } to { transform: translate(-40px,20px); } }
+
+.weather-content { position: relative; z-index: 2; display: flex; align-items: center; gap: 16px; }
+.weather .weather-icon { font-size: 40px; flex-shrink: 0; }
+.weather .weather-body { flex: 1; min-width: 0; }
+.weather h2 { font-size: 18px; margin-bottom: 4px; letter-spacing: -0.2px; }
+.weather p { font-size: 12px; color: #6a6a7e; }
+.weather .layer-hint { display: inline-block; margin-top: 6px; padding: 5px 10px; background: #fff3c0; color: #a07d00; border-radius: 8px; font-size: 11px; font-weight: 700; }
+
+.weather-sim { display: flex; gap: 10px; flex-shrink: 0; }
+.weather-tool { background: rgba(255,255,255,0.92); backdrop-filter: blur(4px); border-radius: 12px; padding: 8px 10px; text-align: center; min-width: 66px; border: 1px solid rgba(102,126,234,0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.weather-tool .icon { font-size: 18px; line-height: 1; margin-bottom: 4px; display: block; }
+.weather-tool .val { font-size: 14px; font-weight: 800; color: #1a1a2e; line-height: 1.1; }
+.weather-tool .lbl { font-size: 8.5px; color: #6a6a7e; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+
+.temp-bar { width: 8px; height: 44px; background: linear-gradient(180deg, #ff4757 0%, #ffa751 50%, #4fc3f7 100%); border-radius: 4px; margin: 5px auto 0; position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); }
+.temp-bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.2)); border-radius: 4px; transition: height .6s ease; }
+
+.wind-icon { display: inline-block; animation: windSpin 2s linear infinite; transform-origin: center; }
+@keyframes windSpin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.wind-strong .wind-icon { animation-duration: 0.6s; }
+
+.humidity-icon { display: inline-block; animation: humidityPulse 2s ease-in-out infinite; }
+@keyframes humidityPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 
 .char-box { width: 100%; height: 300px; border-radius: 20px; border: 3px solid #fff; position: relative; overflow: hidden; transition: all 0.5s; cursor: pointer; }
 .char-box.bg-yakutsk { background: linear-gradient(180deg, #1a2a4a 0%, #2a4a7a 40%, #6a8ab0 100%); }
 .char-box.bg-yakutsk::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(2px 2px at 20% 30%, #fff, transparent), radial-gradient(2px 2px at 40% 50%, #fff, transparent), radial-gradient(1px 1px at 60% 20%, #fff, transparent), radial-gradient(2px 2px at 80% 60%, #fff, transparent); animation: snowfall 8s linear infinite; opacity: 0.8; }
-@keyframes snowfall { from { background-position: 0 0; } to { background-position: 0 300px; } }
 .char-box.bg-vietnam { background: linear-gradient(180deg, #0d3b2e 0%, #1a6b4a 40%, #4aa87a 100%); }
 .char-box.bg-vietnam::after { content: ''; position: absolute; inset: 0; background-image: repeating-linear-gradient(105deg, rgba(255,255,255,.25) 0 1px, transparent 1px 12px); animation: rainfall .6s linear infinite; opacity: .7; }
-@keyframes rainfall { from { background-position: 0 0; } to { background-position: -40px 80px; } }
 .char-box.bg-london { background: linear-gradient(180deg, #4a4e5a 0%, #7a7e8a 40%, #b8bcc4 100%); }
 .char-box.bg-london::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 60%, rgba(255,255,255,.3) 0%, transparent 60%), radial-gradient(ellipse at 70% 40%, rgba(255,255,255,.25) 0%, transparent 55%); animation: fogmove 12s ease-in-out infinite alternate; }
-@keyframes fogmove { from { transform: translateX(-10px); } to { transform: translateX(10px); } }
 .char-box.bg-sahara { background: linear-gradient(180deg, #f7c873 0%, #e8a94a 40%, #c97e2a 100%); }
 .char-box.bg-sahara::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,.5), transparent), radial-gradient(1px 1px at 35% 55%, rgba(255,255,255,.4), transparent), radial-gradient(1px 1px at 65% 35%, rgba(255,255,255,.5), transparent), radial-gradient(1px 1px at 85% 65%, rgba(255,255,255,.4), transparent); animation: sandmove 10s linear infinite; opacity: .8; }
-@keyframes sandmove { from { background-position: 0 0; } to { background-position: 60px 30px; } }
 .char-box.freezing { animation: shake 0.5s infinite; }
 .char-box.perfect { box-shadow: inset 0 0 80px rgba(56,239,125,0.4); }
 @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
@@ -259,13 +312,18 @@ h3 { font-size: 15px; font-weight: 700; color: #667eea; margin-bottom: 10px; tex
 .about-box .stage { font-size: 10.5px; font-weight: 800; color: #11998e; text-transform: uppercase; letter-spacing: 2px; }
 .about-box .copy { font-size: 10.5px; color: #aaa; margin-top: 4px; }
 
-.toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-30px); background: rgba(30, 20, 60, 0.95); color: #fff; padding: 14px 22px; border-radius: 14px; font-weight: 700; font-size: 13px; z-index: 600; opacity: 0; transition: all 0.3s; max-width: 90%; text-align: center; pointer-events: none; }
+.toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-30px); background: rgba(30, 20, 60, 0.95); color: #fff; padding: 14px 22px; border-radius: 14px; font-weight: 700; font-size: 13px; z-index: 800; opacity: 0; transition: all 0.3s; max-width: 90%; text-align: center; pointer-events: none; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast.good { background: linear-gradient(135deg, #11998e, #38ef7d); }
 .toast.bad { background: linear-gradient(135deg, #ff4757, #ff6b7a); }
 .toast.gold { background: linear-gradient(135deg, #f7b733, #fc4a1a); }
 
 @media (max-width: 1100px) { .game { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+    .weather-content { flex-direction: column; align-items: flex-start; }
+    .weather-sim { width: 100%; justify-content: space-between; }
+    .weather-tool { flex: 1; min-width: 0; }
+}
 @media (max-width: 600px) { body { padding: 12px; } h1 { font-size: 20px; } .btn { padding: 12px 20px; font-size: 14px; } }
 </style>
 </head>
@@ -289,6 +347,52 @@ h3 { font-size: 15px; font-weight: 700; color: #667eea; margin-bottom: 10px; tex
         </g>
     </defs>
 </svg>
+
+<div class="side-menu-bg" id="side-menu-bg" onclick="closeMenu()"></div>
+<div class="side-menu" id="side-menu">
+    <div class="side-menu-header">
+        <div class="vil-logo vil-logo-settings" onclick="logoClick(event)">
+            <svg viewBox="0 0 64 56"><use href="#vil-team-mark"/></svg>
+            <div class="vil-script">Vil Team</div>
+            <div class="vil-sub">метео-агент</div>
+        </div>
+    </div>
+
+    <div class="side-menu-items">
+        <button class="side-item" onclick="closeMenu();showSettings()">
+            <span class="side-icon">⚙️</span>
+            <span class="side-text">Настроить вид</span>
+        </button>
+        <button class="side-item" onclick="closeMenu();showLangSelect()">
+            <span class="side-icon">🌐</span>
+            <span class="side-text">Сменить язык</span>
+        </button>
+    </div>
+
+    <div class="side-menu-divider"></div>
+
+    <div class="side-menu-section">
+        <div class="side-section-title">О КЛИМАТИЧЕСКОМ ПАТРУЛЕ</div>
+        <div class="side-section-text">Образовательная игра от Vil Team. Учит одеваться по погоде через 4 экстремальные локации — от Якутска до Сахары.</div>
+    </div>
+
+    <div class="side-menu-section">
+        <div class="side-section-title">МЫ В СОЦСЕТЯХ</div>
+        <div class="side-socials">
+            <a class="side-social" href="https://t.me/meteoagents" target="_blank" rel="noopener" title="Telegram">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+            </a>
+            <a class="side-social" href="https://t.me/meteoagents" target="_blank" rel="noopener" title="VK" style="background:#4c75a3;">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.16 17.09c-5.45 0-8.56-3.74-8.68-9.95h2.73c.08 4.56 2.1 6.49 3.69 7.06V7.14h2.57v3.65c1.58-.17 3.24-1.96 3.8-3.65h2.56c-.43 2.09-2.24 3.88-3.53 4.56 1.29.55 3.35 2.11 4.13 5.39h-2.83c-.61-1.91-2.14-3.39-4.13-3.59v3.59h-.31z"/></svg>
+            </a>
+            <a class="side-social" href="https://t.me/meteoagents" target="_blank" rel="noopener" title="Одноклассники" style="background:#ee8208;">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 105 5 5 5 0 00-5-5zm0 7.5a2.5 2.5 0 112.5-2.5A2.5 2.5 0 0112 9.5zm6.5 6.92a7.7 7.7 0 01-2.79 1.65 9.77 9.77 0 012.22 2.62 1.5 1.5 0 01-2.6 1.5 6.36 6.36 0 00-3.33-3.13 6.36 6.36 0 00-3.33 3.13 1.5 1.5 0 01-2.6-1.5 9.77 9.77 0 012.22-2.62 7.7 7.7 0 01-2.79-1.65 1.5 1.5 0 012.12-2.12 5 5 0 008.76 0 1.5 1.5 0 012.12 2.12z"/></svg>
+            </a>
+        </div>
+    </div>
+
+    <button class="side-menu-close" onclick="closeMenu()">Закрыть</button>
+</div>
 
 <div class="screen active" id="loading">
     <div class="loading-card">
@@ -352,6 +456,7 @@ h3 { font-size: 15px; font-weight: 700; color: #667eea; margin-bottom: 10px; tex
         </div>
         <div class="hub-topbar">
             <button class="btn icon-btn" onclick="showSettings()" title="Настройки">⚙️</button>
+            <button class="btn icon-btn" onclick="openMenu()" title="Меню">☰</button>
         </div>
         <h1>Климатический патруль</h1>
         <div class="hub-stats">
@@ -764,6 +869,20 @@ function updateVolVolume(){musicVolume=document.getElementById('slider-vol').val
 function showScreen(id){var s=document.querySelectorAll('.screen');for(var i=0;i<s.length;i++)s[i].classList.remove('active');document.getElementById(id).classList.add('active')}
 function showToast(msg,kind){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(kind?' '+kind:'');setTimeout(function(){t.classList.remove('show')},2500)}
 
+function openMenu(){
+    soundClick();
+    document.getElementById('side-menu-bg').classList.add('active');
+    setTimeout(function(){document.getElementById('side-menu').classList.add('open')},10);
+}
+function closeMenu(){
+    soundClick();
+    document.getElementById('side-menu').classList.remove('open');
+    setTimeout(function(){document.getElementById('side-menu-bg').classList.remove('active')},300);
+}
+function showLangSelect(){
+    showToast('Смена языка — в разработке','bad');
+}
+
 function showHub(){
     if(typeof mg!=='undefined'&&mg.active){mg.active=false;if(mg.timer)clearInterval(mg.timer)}
     showScreen('hub');
@@ -982,8 +1101,62 @@ function isItemSeenInDone(id){for(var lvlId in state.done){if(state.done[lvlId]>
 function startLevel(level){
     state.level=level;state.eq={1:null,2:null,3:null,4:null};state.patterns={1:'none',2:'none',3:'none'};
     document.getElementById('char-name').textContent=level.char;
+    
+    var animClass='';
+    if(level.id==='yakutsk')animClass='snow';
+    else if(level.id==='vietnam')animClass='rain';
+    else if(level.id==='london')animClass='fog';
+    else if(level.id==='sahara')animClass='sand';
+    
+    var tempPercent=((level.temp+60)/110)*100;
+    if(tempPercent<5)tempPercent=5;
+    if(tempPercent>100)tempPercent=100;
+    
+    var tempIcon='🌡️';
+    if(level.temp<=-30)tempIcon='🥶';
+    else if(level.temp<=0)tempIcon='❄️';
+    else if(level.temp<=15)tempIcon='🌤️';
+    else if(level.temp<=30)tempIcon='☀️';
+    else tempIcon='🔥';
+    
+    var windIcon='💨';
+    var windClass=level.wind>=15?'wind-strong':'';
+    
+    var humIcon='💧';
+    if(level.hum>=80)humIcon='🌊';
+    else if(level.hum<=10)humIcon='🏜️';
+    
     var reqText=level.required.length===4?'Нужны все 4 слоя':'Обязательные слои: '+level.required.join(', ');
-    document.getElementById('weather').innerHTML='<h2>'+level.icon+' '+level.title+'</h2><p>'+level.mission+'</p><p class="weather-stats">'+level.temp+'°C · Ветер '+level.wind+' · Влажность '+level.hum+'%</p><span class="layer-hint">📋 '+reqText+'</span>';
+    
+    document.getElementById('weather').innerHTML=
+        '<div class="weather-anim '+animClass+'"></div>'+
+        '<div class="weather-content">'+
+            '<div class="weather-icon">'+level.icon+'</div>'+
+            '<div class="weather-body">'+
+                '<h2>'+level.title+'</h2>'+
+                '<p>'+level.mission+'</p>'+
+                '<span class="layer-hint">📋 '+reqText+'</span>'+
+            '</div>'+
+            '<div class="weather-sim">'+
+                '<div class="weather-tool">'+
+                    '<span class="icon">'+tempIcon+'</span>'+
+                    '<div class="val">'+level.temp+'°</div>'+
+                    '<div class="lbl">Темп</div>'+
+                    '<div class="temp-bar"><div class="temp-bar-fill" style="height:'+(100-tempPercent)+'%"></div></div>'+
+                '</div>'+
+                '<div class="weather-tool '+windClass+'">'+
+                    '<span class="icon wind-icon">'+windIcon+'</span>'+
+                    '<div class="val">'+level.wind+'</div>'+
+                    '<div class="lbl">Ветер</div>'+
+                '</div>'+
+                '<div class="weather-tool">'+
+                    '<span class="icon humidity-icon">'+humIcon+'</span>'+
+                    '<div class="val">'+level.hum+'%</div>'+
+                    '<div class="lbl">Влажн</div>'+
+                '</div>'+
+            '</div>'+
+        '</div>';
+    
     document.getElementById('result').style.display='none';
     document.getElementById('hp-bar').style.width='100%';document.getElementById('hp-val').textContent='100%';
     document.getElementById('dry-bar').style.width='100%';document.getElementById('dry-val').textContent='100%';
