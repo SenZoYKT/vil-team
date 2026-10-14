@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Климатический патруль</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Manrope', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); background-attachment: fixed; color: #1a1a2e; padding: 20px; min-height: 100vh; font-size: 14px; -webkit-font-smoothing: antialiased; }
+.screen { display: none; animation: fadeIn 0.4s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+h1 { font-size: 26px; font-weight: 800; color: #fff; text-align: center; margin-bottom: 20px; text-shadow: 0 2px 20px rgba(0,0,0,0.15); }
+h2 { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px; }
+h3 { font-size: 15px; font-weight: 700; color: #667eea; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.vil-logo{display:inline-flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.vil-logo svg{display:block;transition:transform .15s}
+.vil-logo:active svg{transform:scale(.94)}
+.vil-logo .vil-script{font-family:'Dancing Script',cursive;font-weight:700;color:#1a3a5c;line-height:1}
+.vil-logo .vil-sub{font-size:9px;font-weight:800;letter-spacing:2px;color:#1a3a5c;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.vil-logo .vil-sub::before,.vil-logo .vil-sub::after{content:'';height:1px;background:#1a3a5c;flex:1;min-width:14px;opacity:.7}
+.vil-logo-loading svg{width:80px;height:80px}
+.vil-logo-loading .vil-script{font-size:26px}
+.vil-logo-corner{position:absolute;top:14px;left:16px;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(6px);border-radius:10px;padding:7px 11px;box-shadow:0 2px 10px rgba(0,0,0,.06);flex-direction:row;gap:9px;align-items:center;border:1px solid rgba(102,126,234,.15)}
+.vil-logo-corner svg{width:30px;height:30px}
+.vil-logo-corner .vil-script{font-size:15px}
+.vil-logo-corner .vil-sub{font-size:7px;letter-spacing:1.5px}
+.vil-logo-corner .vil-text{display:flex;flex-direction:column;gap:0}
+
+#loading { display: none; align-items: center; justify-content: center; min-height: 100vh; }
+#loading.active { display: flex; }
+.loading-card { max-width: 500px; padding: 50px 40px; background: rgba(255,255,255,0.95); border-radius: 28px; box-shadow: 0 30px 80px rgba(0,0,0,0.3); text-align: center; width: 100%; }
+.loading-title { font-size: 28px; font-weight: 800; color: #1a1a2e; margin-bottom: 10px; }
+.loading-sub { font-size: 14px; color: #6a6a7e; margin-bottom: 30px; font-weight: 600; }
+.loading-bar-bg { height: 14px; background: #e8e8f0; border-radius: 20px; overflow: hidden; margin-bottom: 15px; }
+.loading-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2, #f093fb); border-radius: 20px; width: 0%; transition: width 0.3s ease; }
+.loading-status { font-size: 13px; color: #667eea; font-weight: 700; min-height: 20px; }
+.loading-version { font-size: 10px; color: #aaa; margin-top: 18px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+
+#intro { display: none; align-items: center; justify-content: center; min-height: 100vh; padding: 20px 0; }
+#intro.active { display: flex; }
+.intro-card { max-width: 620px; padding: 35px; background: rgba(255,255,255,0.97); border-radius: 28px; box-shadow: 0 30px 80px rgba(0,0,0,0.3); text-align: center; }
+.intro-emoji { font-size: 70px; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.intro-card h1 { color: #1a1a2e; text-shadow: none; font-size: 24px; margin-bottom: 20px; }
+.intro-text { text-align: left; line-height: 1.7; font-size: 14px; color: #4a4a5e; }
+.intro-alert { background: linear-gradient(135deg, #ffe0e0, #ffd0d0); padding: 14px 16px; border-radius: 14px; border-left: 4px solid #ff4757; color: #a01722; font-weight: 600; font-size: 13px; }
+.intro-help { background: linear-gradient(135deg, #e0f0ff, #d0e8ff); padding: 18px; border-radius: 16px; margin-top: 15px; }
+.intro-help-title { font-weight: 800; color: #1a5276; margin-bottom: 14px; font-size: 15px; text-align: center; display: block; }
+.layer-card { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; background: rgba(255,255,255,0.7); padding: 12px; border-radius: 12px; border-left: 4px solid #4fc3f7; }
+.layer-card:last-child { margin-bottom: 0; }
+.layer-card.acc { background: rgba(255,230,150,0.5); border-left-color: #f7b733; }
+.layer-icon { font-size: 30px; min-width: 40px; text-align: center; }
+.layer-text { text-align: left; flex: 1; }
+.layer-text b { color: #1a5276; font-size: 13px; display: block; margin-bottom: 2px; }
+.layer-text span { font-size: 11px; color: #4a4a5e; line-height: 1.35; }
+.intro-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 22px; flex-wrap: wrap; align-items: center; }
+.intro-version { font-size: 10px; color: #aaa; margin-top: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+
+.btn { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; padding: 14px 28px; border-radius: 14px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 6px 20px rgba(102,126,234,0.4); }
+.btn:hover { transform: translateY(-2px); }
+.btn.secondary { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.btn.orange { background: linear-gradient(135deg, #ffa751, #ff7e5f); }
+.btn.gold { background: linear-gradient(135deg, #f7b733, #fc4a1a); }
+.btn.green { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.btn.purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.btn.danger { background: linear-gradient(135deg, #ff4757, #ff6b7a); }
+.btn.small { padding: 10px 16px; font-size: 12px; }
+.btn.icon-btn { padding: 12px 16px; font-size: 16px; line-height: 1; }
+
+.hub { max-width: 1100px; margin: 0 auto; position: relative; padding-top: 8px; }
+.hub-topbar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 8px; }
+.hub-stats { display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap; }
+.hub-stat { background: rgba(255,255,255,0.95); padding: 16px 28px; border-radius: 20px; text-align: center; min-width: 130px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+.hub-stat .val { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hub-stat .lbl { font-size: 11px; color: #6a6a7e; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+.missions { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; margin-bottom: 25px; }
+.mission { background: rgba(255,255,255,0.95); border-radius: 22px; padding: 22px; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 2px solid transparent; position: relative; overflow: hidden; }
+.mission::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #667eea, #f093fb); }
+.mission:hover { transform: translateY(-6px) scale(1.02); }
+.mission.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(0.5); }
+.mission.locked:hover { transform: none; }
+.mission.locked::before { background: #ccc; }
+.mission.locked .m-status { color: #999; background: #f0f0f0; }
+.mission.done::before { background: linear-gradient(90deg, #11998e, #38ef7d); }
+.mission .m-icon { font-size: 44px; margin-bottom: 10px; display: block; }
+.mission .m-title { font-size: 17px; font-weight: 800; color: #1a1a2e; margin-bottom: 6px; }
+.mission .m-desc { font-size: 12px; color: #6a6a7e; margin-bottom: 12px; line-height: 1.4; }
+.mission .m-status { font-size: 12px; font-weight: 700; color: #667eea; padding: 6px 12px; background: #f0f0ff; border-radius: 20px; display: inline-block; }
+.mission.done .m-status { color: #11998e; background: #e0fff5; }
+
+.buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+.lab, .enc, .shop { max-width: 1100px; margin: 0 auto; }
+.lab-grid, .enc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.lab-card, .enc-card { background: rgba(255,255,255,0.95); border-radius: 20px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); transition: all 0.2s; }
+.lab-card:hover, .enc-card:hover { transform: translateY(-4px); }
+.lab-card { border-top: 5px solid #ffa751; }
+.enc-card { border-top: 5px solid #667eea; }
+.enc-card.locked { opacity: 0.4; filter: grayscale(0.7); }
+.enc-card.legendary { border-top: 5px solid #f7b733; background: linear-gradient(135deg, #fff8e0, #fff0c0); position: relative; }
+.enc-card.legendary::after { content: '⭐'; position: absolute; top: 12px; right: 15px; font-size: 26px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+.lab-card .l-icon, .enc-card .e-icon { font-size: 42px; margin-bottom: 10px; display: block; }
+.lab-card .l-name, .enc-card .e-name { font-size: 16px; font-weight: 800; color: #1a1a2e; margin-bottom: 4px; }
+.lab-card .l-short, .enc-card .e-short { font-size: 11px; font-weight: 700; margin-bottom: 10px; font-style: italic; }
+.lab-card .l-short { color: #ffa751; }
+.enc-card .e-short { color: #667eea; }
+.enc-card.legendary .e-short { color: #f7b733; }
+.lab-card .l-type, .enc-card .e-type { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+.lab-card .l-type { color: #ffa751; }
+.enc-card .e-type { color: #667eea; }
+.enc-card.legendary .e-type { color: #f7b733; }
+.lab-card .l-desc, .enc-card .e-desc { font-size: 13px; line-height: 1.5; color: #4a4a5e; }
+.lab-card .l-lesson, .enc-card .e-lesson { font-size: 12px; color: #11998e; margin-top: 12px; padding: 10px 12px; background: #e0fff5; border-radius: 10px; font-style: italic; font-weight: 600; }
+.enc-card.legendary .e-lesson { background: #fff3c0; color: #a07d00; }
+.lab-card .l-stats { font-size: 11px; color: #6a6a7e; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e0e0e8; font-weight: 600; }
+
+.legendary-badge { display: inline-block; padding: 4px 10px; background: linear-gradient(135deg, #f7b733, #fc4a1a); color: #fff; font-size: 10px; font-weight: 800; border-radius: 20px; letter-spacing: 1px; margin-bottom: 8px; }
+
+.shop-coins { text-align: center; margin-bottom: 25px; font-size: 16px; color: #fff; font-weight: 700; }
+.shop-coins b { font-size: 26px; background: linear-gradient(135deg, #f7b733, #fc4a1a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+.shop-item { background: rgba(255,255,255,0.95); border-radius: 22px; padding: 24px 20px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 2px solid transparent; transition: all 0.25s; position: relative; overflow: hidden; }
+.shop-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #f7b733, #fc4a1a); }
+.shop-item:hover { transform: translateY(-6px); }
+.shop-item .s-icon { font-size: 54px; margin-bottom: 12px; display: block; }
+.shop-item .s-name { font-size: 16px; font-weight: 800; color: #1a1a2e; margin-bottom: 8px; }
+.shop-item .s-desc { font-size: 12px; color: #6a6a7e; margin-bottom: 15px; min-height: 50px; line-height: 1.4; }
+.shop-item .s-price { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #f7b733, #fc4a1a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 15px; }
+.shop-item .s-btn { background: linear-gradient(135deg, #f7b733, #fc4a1a); color: #fff; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-family: inherit; font-size: 13px; cursor: pointer; width: 100%; }
+.shop-item .s-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+.game { display: grid; grid-template-columns: 340px 1fr 300px; gap: 18px; max-width: 1400px; margin: 0 auto; }
+.panel { background: rgba(255,255,255,0.95); border-radius: 22px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+.weather { grid-column: 1 / -1; background: rgba(255,255,255,0.95); padding: 20px 25px; border-radius: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+.weather h2 { font-size: 20px; margin-bottom: 6px; }
+.weather p { font-size: 13px; color: #6a6a7e; }
+.weather .weather-stats { color: #667eea !important; font-weight: 700 !important; margin-top: 8px !important; font-size: 14px !important; }
+.weather .layer-hint { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #fff3c0; color: #a07d00; border-radius: 10px; font-size: 12px; font-weight: 700; }
+
+.char-box { width: 100%; height: 300px; border-radius: 20px; border: 3px solid #fff; position: relative; overflow: hidden; transition: all 0.5s; cursor: pointer; }
+.char-box.bg-yakutsk { background: linear-gradient(180deg, #1a2a4a 0%, #2a4a7a 40%, #6a8ab0 100%); }
+.char-box.bg-yakutsk::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(2px 2px at 20% 30%, #fff, transparent), radial-gradient(2px 2px at 40% 50%, #fff, transparent), radial-gradient(1px 1px at 60% 20%, #fff, transparent), radial-gradient(2px 2px at 80% 60%, #fff, transparent); animation: snowfall 8s linear infinite; opacity: 0.8; }
+@keyframes snowfall { from { background-position: 0 0; } to { background-position: 0 300px; } }
+.char-box.bg-vietnam { background: linear-gradient(180deg, #0d3b2e 0%, #1a6b4a 40%, #4aa87a 100%); }
+.char-box.bg-vietnam::after { content: ''; position: absolute; inset: 0; background-image: repeating-linear-gradient(105deg, rgba(255,255,255,.25) 0 1px, transparent 1px 12px); animation: rainfall .6s linear infinite; opacity: .7; }
+@keyframes rainfall { from { background-position: 0 0; } to { background-position: -40px 80px; } }
+.char-box.bg-london { background: linear-gradient(180deg, #4a4e5a 0%, #7a7e8a 40%, #b8bcc4 100%); }
+.char-box.bg-london::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 30% 60%, rgba(255,255,255,.3) 0%, transparent 60%), radial-gradient(ellipse at 70% 40%, rgba(255,255,255,.25) 0%, transparent 55%); animation: fogmove 12s ease-in-out infinite alternate; }
+@keyframes fogmove { from { transform: translateX(-10px); } to { transform: translateX(10px); } }
+.char-box.bg-sahara { background: linear-gradient(180deg, #f7c873 0%, #e8a94a 40%, #c97e2a 100%); }
+.char-box.bg-sahara::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,.5), transparent), radial-gradient(1px 1px at 35% 55%, rgba(255,255,255,.4), transparent), radial-gradient(1px 1px at 65% 35%, rgba(255,255,255,.5), transparent), radial-gradient(1px 1px at 85% 65%, rgba(255,255,255,.4), transparent); animation: sandmove 10s linear infinite; opacity: .8; }
+@keyframes sandmove { from { background-position: 0 0; } to { background-position: 60px 30px; } }
+.char-box.freezing { animation: shake 0.5s infinite; }
+.char-box.perfect { box-shadow: inset 0 0 80px rgba(56,239,125,0.4); }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+.char-svg { width: 100%; height: 100%; position: relative; z-index: 2; }
+.cloth { opacity: 0; transition: opacity 0.35s; }
+.cloth.on { opacity: 1; }
+
+.worn-item { background: linear-gradient(135deg, #f0f0ff, #e8e8ff); border-radius: 12px; padding: 10px 14px; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: #1a1a2e; border-left: 4px solid #667eea; }
+.worn-item.empty { border-left-color: #ccc; color: #aaa; font-style: italic; font-weight: 600; background: #f5f5f8; }
+.worn-item.required { border-left-color: #f7b733; background: linear-gradient(135deg, #fff8e0, #ffe8b0); color: #a07d00; }
+
+.bar { background: #e8e8f0; border-radius: 20px; height: 22px; overflow: hidden; margin: 6px 0; position: relative; }
+.bar-fill { height: 100%; border-radius: 20px; transition: width 0.6s ease; }
+.hp { background: linear-gradient(90deg, #ff4757, #ffa751, #38ef7d); }
+.dry { background: linear-gradient(90deg, #4fc3f7, #11998e); }
+.bar-val { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.stat-row { display: flex; justify-content: space-between; font-size: 13px; margin-top: 10px; font-weight: 700; color: #1a1a2e; }
+
+.slot-section { margin-bottom: 14px; }
+.slot-title { font-size: 12px; color: #667eea; margin-bottom: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.slot-hint { display: block; font-size: 10px; color: #888; font-weight: 600; text-transform: none; letter-spacing: 0; margin-top: 2px; font-style: italic; }
+.slots { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.slot { background: linear-gradient(135deg, #f8f8ff, #f0f0ff); border: 2px dashed #b8b8e8; border-radius: 14px; padding: 14px; cursor: pointer; min-height: 60px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; font-weight: 700; }
+.slot:hover { background: linear-gradient(135deg, #e8e8ff, #d8d8ff); border-color: #667eea; transform: translateX(3px); }
+.slot.filled { border-style: solid; border-color: #667eea; background: linear-gradient(135deg, #e0e8ff, #d0dcff); }
+.slot .icon { font-size: 26px; }
+.slot .name { font-size: 12px; font-weight: 800; color: #1a1a2e; }
+.slot .empty-text { color: #aaa; font-size: 12px; font-weight: 600; }
+
+.inv-item { background: linear-gradient(135deg, #f8f8ff, #f0f0ff); border: 2px solid transparent; border-radius: 14px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.inv-item:hover { background: linear-gradient(135deg, #e8e8ff, #d8d8ff); border-color: #667eea; transform: translateX(3px); }
+.inv-item.selected { border-color: #11998e; background: linear-gradient(135deg, #d0f5e0, #c0e8d0); }
+.inv-item .name { font-weight: 800; font-size: 13px; margin-bottom: 4px; color: #1a1a2e; }
+.inv-item .short { font-size: 10px; color: #667eea; font-weight: 700; margin-bottom: 4px; font-style: italic; }
+.inv-item .stats { font-size: 10px; color: #667eea; font-weight: 700; margin-bottom: 4px; }
+.inv-item .desc { font-size: 11px; color: #6a6a7e; line-height: 1.35; }
+
+.editor { background: linear-gradient(135deg, #f8f8ff, #f0f0ff); border-radius: 14px; padding: 14px; margin-top: 12px; border: 1px dashed #b8b8e8; }
+.editor-title { font-size: 11px; color: #667eea; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.color-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; margin-bottom: 12px; }
+.color-btn { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 3px solid #fff; transition: all 0.2s; box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+.color-btn:hover { transform: scale(1.15); }
+.pattern-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.pattern-btn { width: 44px; height: 44px; border-radius: 10px; cursor: pointer; border: 3px solid #fff; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #f0f0ff; }
+.pattern-btn:hover { transform: scale(1.1); }
+
+#result { margin-top: 14px; padding: 18px; border-radius: 16px; display: none; font-size: 13px; line-height: 1.55; }
+#result ul { margin-left: 20px; margin-top: 6px; }
+#result li { margin-bottom: 5px; }
+
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(30, 20, 60, 0.75); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
+.modal { background: rgba(255,255,255,0.98); border-radius: 24px; padding: 25px; max-width: 520px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 30px 80px rgba(0,0,0,0.4); text-align: center; }
+.modal h3 { color: #1a1a2e; font-size: 18px; text-transform: none; letter-spacing: 0; margin-bottom: 15px; }
+.modal .close { background: linear-gradient(135deg, #ff4757, #ff6b7a); color: #fff; border: none; padding: 12px; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 12px; font-weight: 800; font-family: inherit; font-size: 14px; }
+.modal .easter-img { width: 180px; height: 180px; margin: 0 auto 12px; display: block; }
+.modal .easter-title { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #667eea, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
+.modal .easter-text { font-size: 12px; color: #4a4a5e; line-height: 1.5; margin-bottom: 10px; }
+.modal .easter-ach { display: inline-flex; align-items: center; gap: 6px; background: #fff8e0; color: #a07d00; padding: 8px 14px; border-radius: 8px; font-weight: 800; font-size: 11.5px; margin-bottom: 6px; }
+
+.minigame-bg { display: none; position: fixed; inset: 0; background: rgba(30, 20, 60, 0.9); z-index: 200; justify-content: center; align-items: center; padding: 20px; }
+.minigame { background: rgba(255,255,255,0.98); border-radius: 28px; padding: 30px; max-width: 640px; width: 100%; text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
+.minigame h2 { color: #1a1a2e; font-size: 22px; margin-bottom: 6px; }
+.minigame p { font-size: 13px; color: #6a6a7e; margin-bottom: 15px; }
+.mg-stats { display: flex; justify-content: space-around; margin: 15px 0; gap: 10px; }
+.mg-stat { background: linear-gradient(135deg, #f0f0ff, #e0e8ff); padding: 12px 20px; border-radius: 16px; flex: 1; }
+.mg-stat .value { font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.mg-stat .label { font-size: 11px; color: #6a6a7e; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+.membrane { background: linear-gradient(180deg, #e0e8ff, #d0dcff); border-radius: 20px; margin: 15px 0; position: relative; height: 220px; overflow: hidden; border: 2px solid #b8b8e8; }
+.membrane-line { position: absolute; top: 50%; left: 0; right: 0; height: 10px; background: linear-gradient(90deg, #667eea, #764ba2, #f093fb); transform: translateY(-50%); z-index: 5; border-radius: 5px; }
+.particle { position: absolute; font-size: 42px; z-index: 10; }
+.mg-btns { display: flex; gap: 12px; margin-top: 15px; }
+.mg-btn { flex: 1; padding: 14px; border-radius: 14px; border: none; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer; color: #fff; }
+.mg-btn.pass { background: linear-gradient(135deg, #4fc3f7, #11998e); }
+.mg-btn.block { background: linear-gradient(135deg, #ff4757, #ff6b7a); }
+.mg-status { font-size: 13px; margin-top: 15px; padding: 14px; border-radius: 14px; background: linear-gradient(135deg, #f0f0ff, #e8e8ff); min-height: 50px; line-height: 1.5; font-weight: 700; color: #4a4a5e; }
+.status-good { color: #11998e !important; background: #d0f5e0 !important; }
+.status-bad { color: #ff4757 !important; background: #ffe0e0 !important; }
+.mg-close { background: linear-gradient(135deg, #11998e, #38ef7d); color: #fff; border: none; padding: 14px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; font-family: inherit; width: 100%; margin-top: 12px; display: none; }
+.mg-hint { font-size: 11px; color: #6a6a7e; margin-top: 10px; font-style: italic; }
+
+.achievement { position: fixed; bottom: 25px; right: 25px; background: linear-gradient(135deg, #f7b733, #fc4a1a); color: #fff; padding: 18px 24px; border-radius: 18px; box-shadow: 0 15px 40px rgba(247,183,51,0.5); z-index: 300; display: none; animation: slideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); max-width: 320px; }
+.achievement.show { display: block; }
+@keyframes slideIn { from { transform: translateX(450px) scale(0.8); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+.achievement .a-title { font-size: 11px; opacity: 0.95; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 800; }
+.achievement .a-name { font-size: 18px; font-weight: 800; margin-top: 6px; }
+
+.settings-bg { display: none; position: fixed; inset: 0; background: rgba(30, 20, 60, 0.75); z-index: 500; justify-content: center; align-items: center; padding: 20px; }
+.settings-bg.active { display: flex; }
+.settings-modal { background: rgba(255,255,255,0.98); border-radius: 24px; padding: 30px; max-width: 440px; width: 100%; box-shadow: 0 30px 80px rgba(0,0,0,0.4); }
+.settings-modal h3 { color: #1a1a2e; font-size: 20px; text-transform: none; letter-spacing: 0; margin-bottom: 20px; text-align: center; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding: 14px 16px; background: linear-gradient(135deg, #f0f0ff, #e8e8ff); border-radius: 14px; gap: 12px; }
+.settings-row label { font-size: 13px; font-weight: 700; color: #1a1a2e; flex: 1; }
+.toggle-btn { background: linear-gradient(135deg, #11998e, #38ef7d); color: #fff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 800; font-family: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
+.toggle-btn.off { background: #ccc; }
+.slider-wrap { display: flex; align-items: center; gap: 10px; min-width: 180px; }
+.slider-wrap input[type="range"] { flex: 1; -webkit-appearance: none; appearance: none; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #667eea, #f093fb); outline: none; cursor: pointer; }
+.slider-wrap input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 3px solid #667eea; cursor: pointer; }
+.slider-wrap span { font-size: 12px; font-weight: 800; color: #667eea; min-width: 42px; text-align: right; }
+.about-box { background: linear-gradient(135deg, #f4f7ff, #e8f0ff); border-radius: 14px; padding: 16px; margin-top: 18px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid rgba(102,126,234,.12); }
+.about-box .ver { font-size: 20px; font-weight: 800; color: #667eea; }
+.about-box .stage { font-size: 10.5px; font-weight: 800; color: #11998e; text-transform: uppercase; letter-spacing: 2px; }
+.about-box .copy { font-size: 10.5px; color: #aaa; margin-top: 4px; }
+
+.toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-30px); background: rgba(30, 20, 60, 0.95); color: #fff; padding: 14px 22px; border-radius: 14px; font-weight: 700; font-size: 13px; z-index: 600; opacity: 0; transition: all 0.3s; max-width: 90%; text-align: center; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.good { background: linear-gradient(135deg, #11998e, #38ef7d); }
+.toast.bad { background: linear-gradient(135deg, #ff4757, #ff6b7a); }
+.toast.gold { background: linear-gradient(135deg, #f7b733, #fc4a1a); }
+
+@media (max-width: 1100px) { .game { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { body { padding: 12px; } h1 { font-size: 20px; } .btn { padding: 12px 20px; font-size: 14px; } }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+        <g id="vil-team-mark">
+            <circle cx="42" cy="14" r="9" fill="#f6b93b"/>
+            <g stroke="#f6b93b" stroke-width="2.4" stroke-linecap="round">
+                <line x1="42" y1="1" x2="42" y2="5"/>
+                <line x1="28" y1="8" x2="31" y2="11"/>
+                <line x1="56" y1="8" x2="53" y2="11"/>
+                <line x1="60" y1="20" x2="56" y2="20"/>
+            </g>
+            <path d="M14 34 Q6 34 6 27 Q6 20 14 20 Q15 12 24 12 Q33 12 35 20 Q42 20 42 27 Q42 34 35 34 Z" fill="none" stroke="#1a3a5c" stroke-width="2.6" stroke-linejoin="round"/>
+            <path d="M12 40 H44 Q49 40 49 45 Q49 50 44 50 Q40 50 40 46" fill="none" stroke="#1a3a5c" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M18 48 H38" fill="none" stroke="#1a3a5c" stroke-width="2.6" stroke-linecap="round"/>
+        </g>
+    </defs>
+</svg>
+
+<div class="screen active" id="loading">
+    <div class="loading-card">
+        <div class="vil-logo vil-logo-loading" onclick="logoClick(event)">
+            <svg viewBox="0 0 64 56"><use href="#vil-team-mark"/></svg>
+            <div class="vil-script">Vil Team</div>
+            <div class="vil-sub">метео-агент</div>
+        </div>
+        <div class="loading-title">Климатический патруль</div>
+        <div class="loading-sub">Подготовка к миссии...</div>
+        <div class="loading-bar-bg"><div class="loading-bar-fill" id="loading-fill"></div></div>
+        <div class="loading-status" id="loading-status">Загрузка систем...</div>
+        <div class="loading-version">v1.0.0 · Vil Team</div>
+    </div>
+</div>
+
+<div class="screen" id="intro">
+    <div class="intro-card">
+        <div class="intro-emoji">🌍</div>
+        <h1>Климатический патруль</h1>
+        <div class="intro-text">
+            <div class="intro-alert"><b>⚠️ Внимание:</b> Произошёл сбой климатического стабилизатора. Погода стала непредсказуемой.</div>
+            <p style="margin-top: 14px; margin-bottom: 14px;"><b style="color: #667eea;">Ты — агент климатического патруля.</b> Отправляйся в разные страны и подбирай экипировку для людей в экстремальных условиях.</p>
+            <div class="intro-help">
+                <span class="intro-help-title">👕 Правило трёх слоёв — как в реальной жизни:</span>
+                <div class="layer-card">
+                    <div class="layer-icon">🩱</div>
+                    <div class="layer-text"><b>1. Базовый слой (термобельё)</b><span>Надевается на голое тело. Убирает пот, чтобы ты не замёрз мокрым.</span></div>
+                </div>
+                <div class="layer-card">
+                    <div class="layer-icon">🧥</div>
+                    <div class="layer-text"><b>2. Средний слой (утеплитель)</b><span>Свитер, флис или пуховик. Сохраняет тепло тела — как одеяло.</span></div>
+                </div>
+                <div class="layer-card">
+                    <div class="layer-icon">🥼</div>
+                    <div class="layer-text"><b>3. Внешний слой (защита)</b><span>Мембранная куртка. Не пускает ветер и дождь, но выпускает пар от тела.</span></div>
+                </div>
+                <div class="layer-card acc">
+                    <div class="layer-icon">🎩</div>
+                    <div class="layer-text"><b>4. Аксессуар (голова)</b><span>Шапка, шляпа или капюшон. Через голову уходит 30% тепла!</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="intro-buttons">
+            <button class="btn" onclick="startGame()">Начать службу</button>
+            <button class="btn secondary" onclick="showLabFromIntro()">Изучить ткани</button>
+            <button class="btn icon-btn" onclick="showSettings()" title="Настройки">⚙️</button>
+        </div>
+        <div class="intro-version">v1.0.0 · Vil Team</div>
+    </div>
+</div>
+
+<div class="screen" id="hub">
+    <div class="hub">
+        <div class="vil-logo vil-logo-corner" onclick="logoClick(event)">
+            <svg viewBox="0 0 64 56"><use href="#vil-team-mark"/></svg>
+            <div class="vil-text">
+                <div class="vil-script">Vil Team</div>
+                <div class="vil-sub">метео-агент</div>
+            </div>
+        </div>
+        <div class="hub-topbar">
+            <button class="btn icon-btn" onclick="showSettings()" title="Настройки">⚙️</button>
+        </div>
+        <h1>Климатический патруль</h1>
+        <div class="hub-stats">
+            <div class="hub-stat"><div class="val" id="stat-coins">0</div><div class="lbl">Очки</div></div>
+            <div class="hub-stat"><div class="val" id="stat-levels">0/4</div><div class="lbl">Уровни</div></div>
+            <div class="hub-stat"><div class="val" id="stat-ach">0</div><div class="lbl">Награды</div></div>
+        </div>
+        <div class="missions" id="missions"></div>
+        <div class="buttons">
+            <button class="btn gold" onclick="showShop()">Магазин</button>
+            <button class="btn orange" onclick="showLab()">Лаборатория</button>
+            <button class="btn purple" onclick="showEnc()">Энциклопедия</button>
+            <button class="btn green" onclick="openMinigame()">Мини-игра</button>
+            <button class="btn secondary" onclick="showAchievements()">🏆 Достижения</button>
+        </div>
+    </div>
+</div>
+
+<div class="screen" id="shop">
+    <div class="shop">
+        <h1>Магазин</h1>
+        <div class="shop-coins">Очки: <b id="shop-coins">0</b> · 💡 Подсказок: <b id="shop-hints" style="color:#f7b733; font-size:26px;">0</b></div>
+        <div class="shop-grid" id="shop-grid"></div>
+        <div class="buttons"><button class="btn" onclick="showHub()">Назад</button></div>
+    </div>
+</div>
+
+<div class="screen" id="lab">
+    <div class="lab">
+        <h1>Лаборатория тканей</h1>
+        <div class="lab-grid" id="lab-grid"></div>
+        <div class="buttons"><button class="btn" onclick="showHub()">Назад</button></div>
+    </div>
+</div>
+
+<div class="screen" id="enc">
+    <div class="enc">
+        <h1>📚 Энциклопедия артефактов</h1>
+        <p style="text-align:center; color:#fff; margin-bottom:20px; font-weight:600;">Открывай материалы по мере прохождения</p>
+        <div class="enc-grid" id="enc-grid"></div>
+        <div class="buttons"><button class="btn" onclick="showHub()">Назад</button></div>
+    </div>
+</div>
+
+<div class="screen" id="achievements">
+    <div class="enc">
+        <h1>🏆 Достижения</h1>
+        <p style="text-align:center; color:#fff; margin-bottom:20px; font-weight:600;">Открывай награды по мере игры</p>
+        <div class="enc-grid" id="ach-grid"></div>
+        <div class="buttons"><button class="btn" onclick="showHub()">Назад</button></div>
+    </div>
+</div>
+
+<div class="screen" id="game">
+    <div class="game">
+        <div class="weather" id="weather"></div>
+        <div class="panel">
+            <h2 id="char-name">Агент</h2>
+            <div class="char-box bg-yakutsk" id="char-box" onclick="charClick(event)">
+                <svg class="char-svg" viewBox="0 0 240 340" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="pat-stripes" patternUnits="userSpaceOnUse" width="12" height="12"><rect width="12" height="12" fill="transparent"/><rect width="12" height="4" fill="rgba(0,0,0,0.25)"/></pattern>
+                        <pattern id="pat-dots" patternUnits="userSpaceOnUse" width="14" height="14"><rect width="14" height="14" fill="transparent"/><circle cx="7" cy="7" r="3" fill="rgba(0,0,0,0.25)"/></pattern>
+                        <pattern id="pat-stars" patternUnits="userSpaceOnUse" width="20" height="20"><rect width="20" height="20" fill="transparent"/><text x="5" y="15" font-size="12" fill="rgba(0,0,0,0.3)">★</text></pattern>
+                        <linearGradient id="pat-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(255,255,255,0.5)"/><stop offset="100%" stop-color="rgba(0,0,0,0.4)"/></linearGradient>
+                    </defs>
+                    <ellipse cx="110" cy="80" rx="32" ry="34" fill="#f4c89a" stroke="#c69c6d" stroke-width="1.5"/>
+                    <ellipse cx="79" cy="82" rx="4" ry="6" fill="#f0bc8a" stroke="#c69c6d" stroke-width="1"/>
+                    <ellipse cx="141" cy="82" rx="4" ry="6" fill="#f0bc8a" stroke="#c69c6d" stroke-width="1"/>
+                    <ellipse cx="99" cy="78" rx="4" ry="5" fill="#fff"/>
+                    <ellipse cx="121" cy="78" rx="4" ry="5" fill="#fff"/>
+                    <circle cx="99.5" cy="78.5" r="2.5" fill="#3a2818"/>
+                    <circle cx="121.5" cy="78.5" r="2.5" fill="#3a2818"/>
+                    <circle cx="100" cy="77.5" r="0.8" fill="#fff"/>
+                    <circle cx="122" cy="77.5" r="0.8" fill="#fff"/>
+                    <path d="M 93 70 Q 99 68 104 70" stroke="#5a3a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path d="M 116 70 Q 122 68 127 70" stroke="#5a3a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path d="M 110 82 Q 108 88 110 88" stroke="#c69c6d" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <path d="M 100 94 Q 110 101 120 94" stroke="#8b4513" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <circle cx="90" cy="90" r="3.5" fill="#f5a3a3" opacity="0.5"/>
+                    <circle cx="130" cy="90" r="3.5" fill="#f5a3a3" opacity="0.5"/>
+                    <path d="M 78 72 Q 82 44 110 44 Q 138 44 142 72 Q 138 58 110 55 Q 82 58 78 72 Z" fill="#5a3a1a"/>
+                    <rect x="100" y="105" width="20" height="18" fill="#f4c89a" stroke="#c69c6d" stroke-width="1"/>
+                    <path d="M 82 122 Q 78 125 78 130 L 78 200 Q 78 205 83 205 L 137 205 Q 142 205 142 200 L 142 130 Q 142 125 138 122 Z" fill="#f4c89a" stroke="#c69c6d" stroke-width="1.5"/>
+                    <path d="M 78 128 L 65 130 Q 60 132 60 138 L 60 185 Q 60 192 66 192 L 72 192 Q 76 192 76 188 L 78 165" fill="#f4c89a" stroke="#c69c6d" stroke-width="1.5"/>
+                    <circle cx="66" cy="195" r="9" fill="#f4c89a" stroke="#c69c6d" stroke-width="1.5"/>
+                    <path d="M 142 128 L 155 130 Q 160 132 160 138 L 160 145 Q 160 150 155 150 L 142 148" fill="#f4c89a" stroke="#c69c6d" stroke-width="1.5"/>
+                    <circle cx="168" cy="140" r="9" fill="#f4c89a" stroke="#c69c6d" stroke-width="1.5"/>
+                    <rect x="88" y="205" width="18" height="65" fill="#f4c89a" stroke="#c69c6d" stroke-width="1.5"/>
+                    <rect x="114" y="205" width="18" height="65" fill="#f4c89a" stroke="#c69c6d" stroke-width="1.5"/>
+                    <path d="M 85 268 Q 82 268 82 272 L 82 285 Q 82 289 86 289 L 106 289 Q 109 289 109 286 L 109 268 Z" fill="#3e2723"/>
+                    <path d="M 111 268 Q 108 268 108 272 L 108 286 Q 108 289 111 289 L 131 289 Q 135 289 135 285 L 135 272 Q 135 268 132 268 Z" fill="#3e2723"/>
+                    <g class="cloth" id="cloth-base"><path d="M 82 120 L 138 120 L 140 145 L 138 205 L 82 205 L 80 145 Z" fill="#e74c3c"/><path d="M 96 120 Q 110 130 124 120" stroke="#a93226" stroke-width="1.5" fill="none"/><path d="M 82 122 L 68 124 Q 65 126 65 130 L 65 145 L 78 145 Z" fill="#e74c3c"/><path d="M 138 122 L 152 124 Q 155 126 155 130 L 155 138 L 140 138 Z" fill="#e74c3c"/></g>
+                    <path class="cloth" id="cloth-base-pat" d="M 82 120 L 138 120 L 140 145 L 138 205 L 82 205 L 80 145 Z" fill="transparent"/>
+                    <g class="cloth" id="cloth-mid"><path d="M 80 115 L 140 115 L 143 145 L 142 208 L 78 208 L 77 145 Z" fill="#27ae60"/><path d="M 90 115 Q 110 126 130 115" stroke="#1e8449" stroke-width="2.5" fill="none"/><path d="M 78 203 L 142 203" stroke="#1e8449" stroke-width="3"/><path d="M 80 118 L 62 120 Q 58 122 58 128 L 58 178 Q 58 182 62 182 L 76 182 L 76 145 Z" fill="#27ae60"/><path d="M 140 118 L 158 120 Q 162 122 162 128 L 162 145 L 145 145 Z" fill="#27ae60"/></g>
+                    <path class="cloth" id="cloth-mid-pat" d="M 80 115 L 140 115 L 143 145 L 142 208 L 78 208 L 77 145 Z" fill="transparent"/>
+                    <g class="cloth" id="cloth-outer"><path d="M 76 108 L 144 108 L 148 145 L 146 212 L 74 212 L 72 145 Z" fill="#34495e"/><path d="M 80 108 Q 82 90 110 90 Q 138 90 140 108" stroke="#2c3e50" stroke-width="2.5" fill="none"/><path d="M 84 108 L 136 108 L 132 124 L 88 124 Z" fill="#2c3e50"/><line x1="110" y1="112" x2="110" y2="208" stroke="#1a252f" stroke-width="2.5"/><path d="M 76 112 L 58 114 Q 54 116 54 122 L 54 185 Q 54 190 58 190 L 74 190 L 74 148 Z" fill="#34495e"/><path d="M 144 112 L 162 114 Q 166 116 166 122 L 166 145 L 148 145 Z" fill="#34495e"/></g>
+                    <path class="cloth" id="cloth-outer-pat" d="M 76 108 L 144 108 L 148 145 L 146 212 L 74 212 L 72 145 Z" fill="transparent"/>
+                    <g class="cloth" id="cloth-hat"><path d="M 76 68 Q 82 36 110 36 Q 138 36 144 68 Z" fill="#5d4037"/><path d="M 74 62 L 146 62 L 144 76 L 76 76 Z" fill="#3e2723"/><circle cx="110" cy="33" r="7" fill="#8a6a4a"/></g>
+                    <g class="cloth" id="cloth-umbrella"><path d="M 30 60 Q 120 -10 210 60 Q 180 45 120 45 Q 60 45 30 60 Z" fill="#3498db" stroke="#1a5276" stroke-width="2"/><circle cx="120" cy="42" r="4" fill="#1a5276"/><line x1="175" y1="55" x2="175" y2="200" stroke="#5d4037" stroke-width="4"/><path d="M 175 200 Q 175 215 162 215" stroke="#5d4037" stroke-width="4" fill="none" stroke-linecap="round"/></g>
+                </svg>
+            </div>
+            <div style="margin-top:14px;">
+                <div style="font-size:12px;color:#667eea;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Надето:</div>
+                <div id="worn-list"></div>
+            </div>
+            <div style="margin-top:14px;">
+                <div class="stat-row"><span>Здоровье</span></div>
+                <div class="bar"><div class="bar-fill hp" id="hp-bar" style="width:100%"></div><div class="bar-val" id="hp-val">100%</div></div>
+                <div class="stat-row"><span>Сухость</span></div>
+                <div class="bar"><div class="bar-fill dry" id="dry-bar" style="width:100%"></div><div class="bar-val" id="dry-val">100%</div></div>
+            </div>
+            <button class="btn" style="width:100%; margin-top:16px;" onclick="runSim()">Проверить</button>
+            <button class="btn danger small" style="width:100%; margin-top:8px;" onclick="resetEquipment()">Сбросить экипировку</button>
+            <button class="btn secondary small" style="width:100%; margin-top:8px;" onclick="showHub()">Назад</button>
+            <div id="result"></div>
+        </div>
+        <div class="panel">
+            <h3>Экипировка</h3>
+            <div class="slot-section"><div class="slot-title">1. Базовый слой<span class="slot-hint">убирает пот с тела</span></div><div class="slots" id="slots-1"></div></div>
+            <div class="slot-section"><div class="slot-title">2. Средний слой<span class="slot-hint">греет — как одеяло</span></div><div class="slots" id="slots-2"></div></div>
+            <div class="slot-section"><div class="slot-title">3. Внешний слой<span class="slot-hint">защищает от ветра и дождя</span></div><div class="slots" id="slots-3"></div></div>
+            <div class="slot-section"><div class="slot-title">4. Аксессуар<span class="slot-hint">голова теряет 30% тепла</span></div><div class="slots" id="slots-4"></div></div>
+        </div>
+        <div class="panel">
+            <h3>Предметы</h3>
+            <div id="inv"></div>
+            <div class="editor" id="editor" style="display:none;">
+                <div class="editor-title">🎨 Цвет</div>
+                <div class="color-row" id="color-row"></div>
+                <div class="editor-title">✨ Принт</div>
+                <div class="pattern-row" id="pattern-row"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+    <div class="modal">
+        <h3 id="modal-title">Выберите</h3>
+        <div id="modal-items"></div>
+        <button class="close" onclick="closeModal()">Закрыть</button>
+    </div>
+</div>
+
+<div class="minigame-bg" id="minigame-bg">
+    <div class="minigame">
+        <h2>Пропусти пар, останови каплю</h2>
+        <p>Мембрана выпускает пар, но не пускает воду</p>
+        <div class="mg-stats">
+            <div class="mg-stat"><div class="value" id="mg-score">0</div><div class="label">Очки</div></div>
+            <div class="mg-stat"><div class="value" id="mg-lives">❤️❤️❤️</div><div class="label">Жизни</div></div>
+            <div class="mg-stat"><div class="value" id="mg-time">30</div><div class="label">Секунд</div></div>
+        </div>
+        <div class="membrane">
+            <div class="membrane-line"></div>
+            <div class="particle" id="active-particle" style="display:none; left:50%; transform:translateX(-50%); top:35%;">💨</div>
+        </div>
+        <div class="mg-status" id="mg-status">Нажимай «Пропустить пар» на пар и «Остановить каплю» на каплю</div>
+        <div class="mg-btns">
+            <button class="mg-btn pass" onclick="mgAction('pass')">Пропустить пар</button>
+            <button class="mg-btn block" onclick="mgAction('block')">Остановить каплю</button>
+        </div>
+        <div class="mg-hint">💡 Пар — это молекулы воды в газообразном состоянии. Капля — жидкая вода. Мембрана пропускает пар, но задерживает капли.</div>
+        <button class="mg-close" id="mg-close" onclick="closeMinigame()">Продолжить</button>
+    </div>
+</div>
+
+<div class="settings-bg" id="settings-bg">
+    <div class="settings-modal">
+        <h3 onclick="managerClick(event)">🔊 Настройки звука</h3>
+        <div class="settings-row">
+            <label>Общий звук</label>
+            <button class="toggle-btn" id="toggle-master" onclick="toggleMaster()">🔊 Вкл</button>
+        </div>
+        <div class="settings-row">
+            <label>Эффекты</label>
+            <div class="slider-wrap">
+                <input type="range" id="slider-sfx" min="0" max="100" value="70" oninput="updateSfxVolume()">
+                <span id="sfx-val">70%</span>
+            </div>
+        </div>
+        <div class="settings-row">
+            <label>Музыка</label>
+            <button class="toggle-btn" id="toggle-music" onclick="toggleMusicBtn()">🎵 Вкл</button>
+        </div>
+        <div class="settings-row">
+            <label>Громкость</label>
+            <div class="slider-wrap">
+                <input type="range" id="slider-vol" min="0" max="100" value="60" oninput="updateVolVolume()">
+                <span id="vol-val">60%</span>
+            </div>
+        </div>
+        <div class="about-box">
+            <div class="ver">v1.0.0</div>
+            <div class="stage">Релиз</div>
+            <div class="copy">© 2026 Vil Team</div>
+        </div>
+        <button class="btn" style="width:100%; margin-top:15px;" onclick="closeSettings()">Закрыть</button>
+    </div>
+</div>
+
+<div class="modal-bg" id="easter-bg">
+    <div class="modal">
+        <div class="easter-title">🎉 Пасхалка найдена!</div>
+        <svg class="easter-img" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="100" cy="120" rx="55" ry="50" fill="#f4a261"/>
+            <path d="M 60 75 L 55 40 L 85 65 Z" fill="#f4a261" stroke="#e76f51" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M 140 75 L 145 40 L 115 65 Z" fill="#f4a261" stroke="#e76f51" stroke-width="2" stroke-linejoin="round"/>
+            <ellipse cx="80" cy="105" rx="7" ry="9" fill="#fff"/>
+            <ellipse cx="120" cy="105" rx="7" ry="9" fill="#fff"/>
+            <ellipse cx="80" cy="107" rx="3.5" ry="6" fill="#2b2b2b"/>
+            <ellipse cx="120" cy="107" rx="3.5" ry="6" fill="#2b2b2b"/>
+            <path d="M 100 120 Q 95 125 100 128 Q 105 125 100 120 Z" fill="#e76f51"/>
+            <path d="M 100 128 Q 92 138 82 132" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M 100 128 Q 108 138 118 132" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <line x1="55" y1="120" x2="25" y2="115" stroke="#2b2b2b" stroke-width="1.5"/>
+            <line x1="55" y1="128" x2="25" y2="130" stroke="#2b2b2b" stroke-width="1.5"/>
+            <line x1="145" y1="120" x2="175" y2="115" stroke="#2b2b2b" stroke-width="1.5"/>
+            <line x1="145" y1="128" x2="175" y2="130" stroke="#2b2b2b" stroke-width="1.5"/>
+        </svg>
+        <div class="easter-text">Ты нашёл секретного кота Vil Team!<br>Мяу! 🐾</div>
+        <div class="easter-ach">🏆 Достижение: «Вы нашли пасхалку»</div>
+        <button class="close" onclick="closeEaster()">Закрыть</button>
+    </div>
+</div>
+
+<div class="modal-bg" id="easter2-bg">
+    <div class="modal">
+        <div class="easter-title">🎨 Пасхалка от дизайнера!</div>
+        <svg class="easter-img" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="30" y="40" width="140" height="120" rx="12" fill="#f4a261" stroke="#e76f51" stroke-width="2"/>
+            <rect x="45" y="55" width="110" height="90" rx="6" fill="#fff8e0"/>
+            <circle cx="70" cy="85" r="10" fill="#e76f51"/>
+            <circle cx="100" cy="85" r="10" fill="#f7b733"/>
+            <circle cx="130" cy="85" r="10" fill="#11998e"/>
+            <circle cx="70" cy="115" r="10" fill="#667eea"/>
+            <circle cx="100" cy="115" r="10" fill="#f093fb"/>
+            <circle cx="130" cy="115" r="10" fill="#2ecc71"/>
+            <path d="M 90 130 Q 100 145 110 130" stroke="#2b2b2b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="85" cy="132" r="1.5" fill="#2b2b2b"/>
+            <circle cx="115" cy="132" r="1.5" fill="#2b2b2b"/>
+            <path d="M 60 30 L 75 45 L 90 30 L 105 45 L 120 30 L 135 45 L 150 30" stroke="#e76f51" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </svg>
+        <div class="easter-text">Ты нашёл пасхалку от дизайнера!<br>Спасибо, что играешь! 🎨✨</div>
+        <div class="easter-ach">🏆 Достижение: «Пасхалка от дизайнера»</div>
+        <button class="close" onclick="closeEaster2()">Закрыть</button>
+    </div>
+</div>
+
+<div class="modal-bg" id="easter3-bg">
+    <div class="modal">
+        <div class="easter-title">💼 Пасхалка от менеджера!</div>
+        <svg class="easter-img" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="40" y="60" width="120" height="90" rx="8" fill="#8b6f47"/>
+            <rect x="40" y="60" width="120" height="20" rx="8" fill="#6d5537"/>
+            <rect x="80" y="50" width="40" height="15" rx="6" fill="#6d5537"/>
+            <circle cx="100" cy="120" r="18" fill="#f7b733" stroke="#e67e22" stroke-width="2"/>
+            <text x="100" y="128" font-size="20" text-anchor="middle" font-weight="800" fill="#fff">$</text>
+            <rect x="55" y="95" width="30" height="8" rx="2" fill="#f7b733"/>
+            <rect x="115" y="95" width="30" height="8" rx="2" fill="#f7b733"/>
+            <path d="M 30 40 L 50 55 L 70 40 L 90 55 L 110 40 L 130 55 L 150 40 L 170 55" stroke="#e67e22" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <circle cx="60" cy="145" r="4" fill="#f7b733"/>
+            <circle cx="140" cy="145" r="4" fill="#f7b733"/>
+        </svg>
+        <div class="easter-text">Ты нашёл пасхалку от менеджера!<br>Спасибо за игру! 💼💎</div>
+        <div class="easter-ach">🏆 Достижение: «Пасхалка от менеджера»</div>
+        <button class="close" onclick="closeEaster3()">Закрыть</button>
+    </div>
+</div>
+
+<div class="modal-bg" id="easter4-bg">
+    <div class="modal">
+        <div class="easter-title">👨‍💻 Секретная пасхалка разработчика!</div>
+        <svg class="easter-img" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="30" y="50" width="140" height="90" rx="10" fill="#2c3e50" stroke="#1a252f" stroke-width="2"/>
+            <rect x="45" y="65" width="110" height="60" rx="4" fill="#1abc9c"/>
+            <text x="100" y="105" font-size="22" text-anchor="middle" font-weight="800" fill="#fff">&lt;/&gt;</text>
+            <rect x="85" y="140" width="30" height="10" rx="2" fill="#34495e"/>
+            <rect x="65" y="150" width="70" height="8" rx="3" fill="#34495e"/>
+            <circle cx="55" cy="75" r="4" fill="#e74c3c"/>
+            <circle cx="70" cy="75" r="4" fill="#f7b733"/>
+            <circle cx="85" cy="75" r="4" fill="#2ecc71"/>
+            <path d="M 40 35 L 60 50 L 80 35 L 100 50 L 120 35 L 140 50 L 160 35" stroke="#2ecc71" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <text x="100" y="180" font-size="14" text-anchor="middle" font-weight="800" fill="#2c3e50">Vil Team</text>
+        </svg>
+        <div class="easter-text">Ты открыл все достижения и нашёл пасхалку разработчика!<br>Спасибо, что играл до конца! 👨‍💻✨</div>
+        <div class="easter-ach">🏆 Достижение: «Секретная пасхалка разработчика»</div>
+        <button class="close" onclick="closeEaster4()">Закрыть</button>
+    </div>
+</div>
+
+<div class="achievement" id="achievement">
+    <div class="a-title">Новое достижение</div>
+    <div class="a-name" id="achievement-name">Первая миссия</div>
+</div>
+
+<script>
+var LEVELS=[
+    {id:"yakutsk",icon:"❄️",title:"Якутская зима",char:"Фотограф",temp:-50,wind:15,hum:0,mission:"Съёмка мамонтов в -50°C",required:[1,2,3,4],bg:"bg-yakutsk",idealBase:["wool","poly"],idealMid:["down","fleece"],idealOuter:["arctic"],idealAcc:["furhat"],forbid:[],hint:"Нужно 3 тёплых слоя и меховая шапка."},
+    {id:"vietnam",icon:"🌴",title:"Муссоны во Вьетнаме",char:"Исследователь",temp:25,wind:5,hum:90,mission:"Поход к храму под ливнем",required:[1,3,4],bg:"bg-vietnam",idealBase:["linen","poly"],idealMid:null,idealOuter:["rain","light"],idealAcc:["umbrella","widehat"],forbid:["down","arctic","furhat","sweater","fleece","cheap"],hint:"Дышащая одежда + дождевик + зонт. Тёплое нельзя."},
+    {id:"london",icon:"🌫️",title:"Туманный Лондон",char:"Детектив",temp:10,wind:20,hum:70,mission:"Поиск улик в тумане",required:[1,2,3,4],bg:"bg-london",idealBase:["poly","wool"],idealMid:["fleece","sweater"],idealOuter:["softshell","light"],idealAcc:["furhat","widehat"],forbid:["rain","down","arctic"],hint:"Средний слой + софтшелл. Дождевик не дышит."},
+    {id:"sahara",icon:"🏜️",title:"Пустыня Сахара",char:"Археолог",temp:45,wind:10,hum:5,mission:"Поиск артефактов в песках",required:[1,3,4],bg:"bg-sahara",idealBase:["linen"],idealMid:null,idealOuter:["linenrobe"],idealAcc:["widehat"],forbid:["down","arctic","furhat","sweater","fleece","cheap","rain","light","softshell","wool","poly"],hint:"Только лён! Всё тёплое — тепловой удар."}
+];
+var ITEMS={
+    cotton:{name:"Хлопковая футболка",short:"Мягкий натуральный материал",layer:1,warmth:1,breath:6,water:1,wind:0,icon:"👕",color:"#e74c3c",desc:"Впитывает пот, но мокрый холодный.",lesson:"Хлопок — как полотенце."},
+    wool:{name:"Шерстяное термобельё",short:"Тёплый натуральный материал",layer:1,warmth:3,breath:6,water:1,wind:0,icon:"🧶",color:"#d4a373",desc:"Греет даже мокрым.",lesson:"Шерсть греет даже мокрой."},
+    poly:{name:"Полиэстер-термобельё",short:"Лёгкая синтетика",layer:1,warmth:2,breath:7,water:1,wind:0,icon:"🩱",color:"#3498db",desc:"Отводит пот от тела.",lesson:"Синтетика отводит пот."},
+    linen:{name:"Льняная рубашка",short:"Дышащая ткань для жары",layer:1,warmth:1,breath:9,water:2,wind:0,icon:"👔",color:"#f39c12",desc:"Охлаждает и быстро сохнет.",lesson:"Лён — природный кондиционер."},
+    fleece:{name:"Флисовая кофта",short:"Мягкая синтетика, тёплая",layer:2,warmth:4,breath:8,water:1,wind:1,icon:"🧶",color:"#27ae60",desc:"Лёгкая синтетика.",lesson:"Флис — лёгкое тепло."},
+    down:{name:"Пуховая куртка",short:"Самый тёплый утеплитель",layer:2,warmth:6,breath:5,water:1,wind:4,icon:"🧥",color:"#f39c12",desc:"Самый тёплый.",lesson:"Пух — как одеяло."},
+    sweater:{name:"Шерстяной свитер",short:"Тёплый для холода",layer:2,warmth:3,breath:6,water:1,wind:0,icon:"👚",color:"#8e44ad",desc:"Греет даже влажным.",lesson:"Шерсть — универсал."},
+    cheap:{name:"Дешёвая мембрана",short:"Не для мороза",layer:3,warmth:1,breath:6,water:8,wind:9,membrane:"cheap",icon:"🦺",color:"#95a5a6",desc:"На морозе теряет свойства.",lesson:"На морозе дубеет."},
+    light:{name:"Лёгкая мембрана",short:"Дышащая защита",layer:3,warmth:2,breath:9,water:8,wind:8,membrane:"light",icon:"🧥",color:"#16a085",desc:"Хорошо дышит.",lesson:"Дышит и защищает."},
+    arctic:{name:"Арктическая парка",short:"Для экстремального холода",layer:3,warmth:6,breath:7,water:9,wind:9,membrane:"arctic",icon:"🥼",color:"#34495e",desc:"Морозостойкая.",lesson:"Создана для -50°C."},
+    rain:{name:"Дождевик-пакет",short:"От дождя, не дышит",layer:3,warmth:0,breath:0,water:10,wind:10,icon:"🦺",color:"#f1c40f",desc:"Не пропускает пар.",lesson:"Эффект бани."},
+    softshell:{name:"Софтшелл",short:"Для демисезона",layer:3,warmth:2,breath:8,water:5,wind:7,icon:"🧥",color:"#7f8c8d",desc:"Для демисезона.",lesson:"Защищает от ветра."},
+    linenrobe:{name:"Льняной халат",short:"Свободная одежда для пустыни",layer:3,warmth:1,breath:10,water:1,wind:8,icon:"👘",color:"#e67e22",desc:"Продувается.",lesson:"В пустыне обязательна."},
+    furhat:{name:"Меховая шапка",short:"Сохраняет тепло головы",layer:4,warmth:2,breath:1,water:0,wind:0,icon:"🎩",color:"#5d4037",desc:"Через голову уходит тепло.",lesson:"Шапка нужна."},
+    widehat:{name:"Шляпа с полями",short:"Защищает от солнца",layer:4,warmth:0,breath:5,water:3,wind:0,icon:"👒",color:"#e67e22",desc:"От солнца.",lesson:"Защита от солнца."},
+    umbrella:{name:"Зонт",short:"Укрытие от дождя",layer:4,warmth:0,breath:5,water:3,wind:0,icon:"☂️",color:"#2980b9",desc:"От дождя.",lesson:"Не греет."}
+};
+var ALL_ITEMS=["cotton","wool","poly","linen","fleece","down","sweater","cheap","light","arctic","rain","softshell","linenrobe","furhat","widehat","umbrella"];
+var AVAILABLE={yakutsk:ALL_ITEMS,vietnam:ALL_ITEMS,london:ALL_ITEMS,sahara:ALL_ITEMS};
+var LEGENDARY={
+    silk:{name:"Шёлк",icon:"🧣",short:"Древний китайский материал",unlockedBy:"vietnam",desc:"Натуральный шёлк — тонкий, дышащий, лёгкий.",lesson:"Шёлк делают из коконов тутового шелкопряда."},
+    cashmere:{name:"Кашемир",icon:"🧥",short:"Пух горных коз",unlockedBy:"london",desc:"Мягкий и невероятно тёплый пух горных коз.",lesson:"Кашемир собирают с горных коз вручную."},
+    aerogel:{name:"Аэогель",icon:"💎",short:"Самый лёгкий твёрдый материал",unlockedBy:"sahara",desc:"Твёрдый дым! Используется в скафандрах NASA.",lesson:"Аэогель на 99% состоит из воздуха."},
+    graphene:{name:"Графен",icon:"⚡",short:"Слой углерода толщиной в атом",unlockedBy:"yakutsk",desc:"Прочнее стали в 200 раз!",lesson:"Графен открыт в 2004 году."},
+    goretex:{name:"Gore-Tex",icon:"🏔️",short:"Легендарная мембрана",unlockedBy:"yakutsk",desc:"Пропускает пар, но не пропускает воду.",lesson:"Gore-Tex изобрели в 1969 году."}
+};
+var state={level:null,eq:{1:null,2:null,3:null,4:null},done:{},opened:[],legendary:[],coins:0,achievements:[],hints:0,doubleNext:false,doubleUsed:false,totalBuys:0,totalHints:0,minigameBest:0,customColors:{},patterns:{1:'none',2:'none',3:'none'}};
+
+var SHOP_ITEMS=[
+    {id:"hint1",icon:"💡",name:"Подсказка",desc:"Робот сам наденет правильный предмет",price:100,type:"hint"},
+    {id:"hint5",icon:"💡",name:"5 подсказок",desc:"Набор со скидкой",price:400,type:"hint5"},
+    {id:"skip",icon:"⏭️",name:"Пропуск уровня",desc:"Открывает следующий уровень",price:300,type:"skip"},
+    {id:"freecoins",icon:"💰",name:"Кошелёк очков",desc:"+100 очков бесплатно",price:0,type:"freecoins"},
+    {id:"double_xp",icon:"⭐",name:"Двойные очки",desc:"×2 за победу",price:200,type:"double"}
+];
+
+var ACHIEVEMENTS_LIST=[
+    {id:"first_level",icon:"🎯",name:"Первая миссия",desc:"Пройди первый уровень",hint:"Пройди 1 уровень",check:function(){return countCompleted()>=1}},
+    {id:"all_levels",icon:"🌍",name:"Все миссии",desc:"Пройди все 4 уровня",hint:"Пройди 4 уровня",check:function(){return countCompleted()>=4}},
+    {id:"perfect",icon:"💯",name:"Идеальный баланс",desc:"Получи 100/100 на любом уровне",hint:"100/100 на уровне",check:function(){for(var k in state.done)if(state.done[k]===100)return true;return false}},
+    {id:"first_buy",icon:"🛒",name:"Первая покупка",desc:"Купи что-нибудь в магазине",hint:"Купи в магазине",check:function(){return state.totalBuys>=1}},
+    {id:"five_hints",icon:"💡",name:"Запас подсказок",desc:"Купи 5 подсказок",hint:"5 подсказок",check:function(){return state.hints>=5||state.totalHints>=5}},
+    {id:"double_xp",icon:"⭐",name:"Двойной удар",desc:"Активируй двойные очки",hint:"Активируй ×2",check:function(){return state.doubleNext===true||state.doubleUsed===true}},
+    {id:"first_equip",icon:"👕",name:"Первая экипировка",desc:"Надень первый предмет",hint:"Надень 1 предмет",check:function(){return state.opened.length>=1}},
+    {id:"five_items",icon:"🧥",name:"Стилист",desc:"Надень 5 разных предметов",hint:"5 разных предметов",check:function(){return state.opened.length>=5}},
+    {id:"all_items",icon:"👑",name:"Модник",desc:"Надень все 16 предметов",hint:"Все 16 предметов",check:function(){return state.opened.length>=16}},
+    {id:"minigame_50",icon:"🎮",name:"Пар и капля",desc:"Набери 50+ очков в мини-игре",hint:"50+ в мини-игре",check:function(){return state.minigameBest>=50}},
+    {id:"minigame_100",icon:"🏅",name:"Мастер мембраны",desc:"Набери 100+ очков в мини-игре",hint:"100+ в мини-игре",check:function(){return state.minigameBest>=100}},
+    {id:"first_legendary",icon:"⭐",name:"Легендарный",desc:"Найди легендарный материал",hint:"Найди 1 легендарку",check:function(){return state.legendary.length>=1}},
+    {id:"all_legendary",icon:"💎",name:"Коллекционер",desc:"Найди все 5 легендарных материалов",hint:"Все 5 легендарных",check:function(){return state.legendary.length>=5}},
+    {id:"easter_cat",icon:"🐱",name:"Пасхалка от команды",desc:"Пасхалка от Vil Team",hint:"Пасхалка от команды — попробуй найди",secret:true,check:function(){return state.achievements.indexOf('easter')!==-1}},
+    {id:"easter_designer",icon:"🎨",name:"Пасхалка от дизайнера",desc:"Пасхалка от дизайнера",hint:"Пасхалка от дизайнера — попробуй найди",secret:true,check:function(){return state.achievements.indexOf('designer_easter')!==-1}},
+    {id:"easter_manager",icon:"💼",name:"Пасхалка от менеджера",desc:"Пасхалка от менеджера",hint:"Пасхалка от менеджера — попробуй найди",secret:true,check:function(){return state.achievements.indexOf('easter_manager')!==-1}},
+    {id:"easter_developer",icon:"👨‍💻",name:"Секретная пасхалка разработчика",desc:"Открой все остальные достижения",hint:"Секрет: открой все остальные достижения",secret:true,check:function(){return state.achievements.indexOf('developer_easter')!==-1}}
+];
+
+var audioCtx=null,soundEnabled=true,musicEnabled=true,sfxVolume=0.7,musicVolume=0.6,musicNode=null;
+function initAudio(){if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume()}
+function playTone(freq,duration,type,volume){
+    if(!soundEnabled)return;initAudio();if(!audioCtx)return;
+    var osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+    osc.type=type||'sine';osc.frequency.setValueAtTime(freq,audioCtx.currentTime);
+    gain.gain.setValueAtTime((volume||0.15)*sfxVolume*2,audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+duration);
+    osc.connect(gain);gain.connect(audioCtx.destination);
+    osc.start(audioCtx.currentTime);osc.stop(audioCtx.currentTime+duration);
+}
+function soundClick(){playTone(600,0.06,'sine',0.08)}
+function soundSelect(){playTone(800,0.08,'sine',0.12);setTimeout(function(){playTone(1100,0.08,'sine',0.1)},50)}
+function soundSuccess(){playTone(523,0.1,'sine',0.15);setTimeout(function(){playTone(659,0.1,'sine',0.15)},100);setTimeout(function(){playTone(784,0.25,'sine',0.15)},200)}
+function soundFail(){playTone(300,0.15,'sawtooth',0.12);setTimeout(function(){playTone(200,0.3,'sawtooth',0.12)},120)}
+function soundCoin(){playTone(1200,0.06,'square',0.08);setTimeout(function(){playTone(1600,0.1,'square',0.08)},60)}
+function soundBuy(){playTone(700,0.08,'sine',0.12);setTimeout(function(){playTone(900,0.08,'sine',0.12)},70);setTimeout(function(){playTone(1200,0.15,'sine',0.12)},140)}
+function soundAchievement(){playTone(523,0.1,'sine',0.15);setTimeout(function(){playTone(659,0.1,'sine',0.15)},100);setTimeout(function(){playTone(784,0.1,'sine',0.15)},200);setTimeout(function(){playTone(1047,0.35,'sine',0.15)},300)}
+function soundError(){playTone(200,0.15,'sawtooth',0.1)}
+function startMusic(){
+    if(!musicEnabled||!audioCtx)return;
+    stopMusic();
+    var notes=[261.63,329.63,392,523.25,392,329.63],i=0;
+    musicNode=setInterval(function(){
+        if(!musicEnabled||!audioCtx)return;
+        var osc=audioCtx.createOscillator(),g=audioCtx.createGain();
+        osc.type='sine';osc.frequency.value=notes[i%notes.length];
+        g.gain.setValueAtTime(0.03*musicVolume,audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+1.5);
+        osc.connect(g);g.connect(audioCtx.destination);
+        osc.start();osc.stop(audioCtx.currentTime+1.5);i++;
+    },1800);
+}
+function stopMusic(){if(musicNode){clearInterval(musicNode);musicNode=null}}
+
+function showSettings(){soundClick();document.getElementById('settings-bg').classList.add('active');updateSettingsUI()}
+function closeSettings(){soundClick();document.getElementById('settings-bg').classList.remove('active');checkDeveloperEaster()}
+function updateSettingsUI(){
+    var b=document.getElementById('toggle-master');b.textContent=soundEnabled?'🔊 Вкл':'🔇 Выкл';b.className='toggle-btn'+(soundEnabled?'':' off');
+    var m=document.getElementById('toggle-music');m.textContent=musicEnabled?'🎵 Вкл':'🔇 Выкл';m.className='toggle-btn'+(musicEnabled?'':' off');
+    document.getElementById('slider-sfx').value=Math.round(sfxVolume*100);document.getElementById('sfx-val').textContent=Math.round(sfxVolume*100)+'%';
+    document.getElementById('slider-vol').value=Math.round(musicVolume*100);document.getElementById('vol-val').textContent=Math.round(musicVolume*100)+'%';
+}
+function toggleMaster(){soundEnabled=!soundEnabled;if(!soundEnabled)stopMusic();else{soundClick();startMusic()}updateSettingsUI()}
+function toggleMusicBtn(){musicEnabled=!musicEnabled;if(musicEnabled){initAudio();startMusic()}else stopMusic();updateSettingsUI()}
+function updateSfxVolume(){sfxVolume=document.getElementById('slider-sfx').value/100;document.getElementById('sfx-val').textContent=document.getElementById('slider-sfx').value+'%';soundClick()}
+function updateVolVolume(){musicVolume=document.getElementById('slider-vol').value/100;document.getElementById('vol-val').textContent=document.getElementById('slider-vol').value+'%'}
+
+function showScreen(id){var s=document.querySelectorAll('.screen');for(var i=0;i<s.length;i++)s[i].classList.remove('active');document.getElementById(id).classList.add('active')}
+function showToast(msg,kind){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(kind?' '+kind:'');setTimeout(function(){t.classList.remove('show')},2500)}
+
+function showHub(){
+    if(typeof mg!=='undefined'&&mg.active){mg.active=false;if(mg.timer)clearInterval(mg.timer)}
+    showScreen('hub');
+    renderMissions();
+    renderHubStats();
+    soundClick();
+}
+function showShop(){showScreen('shop');renderShop();soundClick()}
+function showLab(){showScreen('lab');renderLab();soundClick()}
+function showLabFromIntro(){renderLab();showScreen('lab');soundClick()}
+function showEnc(){showScreen('enc');renderEnc();soundClick()}
+function showAchievements(){soundClick();showScreen('achievements');renderAchievements()}
+function startGame(){initAudio();soundSelect();showHub()}
+
+var logoClickCount=0,logoClickTimer=null,easterUnlocked=false;
+function logoClick(e){e.stopPropagation();logoClickCount++;
+    if(logoClickCount===1)soundClick();else if(logoClickCount===2)soundSelect();
+    else if(logoClickCount>=3){logoClickCount=0;if(logoClickTimer){clearTimeout(logoClickTimer);logoClickTimer=null}openEaster();return}
+    if(logoClickTimer)clearTimeout(logoClickTimer);
+    logoClickTimer=setTimeout(function(){logoClickCount=0},800);
+}
+function openEaster(){soundSuccess();document.getElementById('easter-bg').style.display='flex';
+    if(!easterUnlocked){easterUnlocked=true;if(state.achievements.indexOf('easter')===-1){state.achievements.push('easter');renderHubStats()}}
+    checkDeveloperEaster();
+}
+function closeEaster(){soundClick();document.getElementById('easter-bg').style.display='none'}
+
+var charClickCount=0,charClickTimer=null,easter2Unlocked=false;
+function charClick(e){e.stopPropagation();charClickCount++;
+    if(charClickCount===1)soundClick();else if(charClickCount===2)soundSelect();
+    else if(charClickCount>=3){charClickCount=0;if(charClickTimer){clearTimeout(charClickTimer);charClickTimer=null}openEaster2();return}
+    if(charClickTimer)clearTimeout(charClickTimer);
+    charClickTimer=setTimeout(function(){charClickCount=0},800);
+}
+function openEaster2(){soundSuccess();document.getElementById('easter2-bg').style.display='flex';
+    if(!easter2Unlocked){easter2Unlocked=true;if(state.achievements.indexOf('designer_easter')===-1){state.achievements.push('designer_easter');renderHubStats()}}
+    checkDeveloperEaster();
+}
+function closeEaster2(){soundClick();document.getElementById('easter2-bg').style.display='none'}
+
+var managerClickCount=0,managerClickTimer=null,easter3Unlocked=false;
+function managerClick(e){e.stopPropagation();managerClickCount++;
+    if(managerClickCount===1)soundClick();else if(managerClickCount===2)soundSelect();
+    else if(managerClickCount>=3){managerClickCount=0;if(managerClickTimer){clearTimeout(managerClickTimer);managerClickTimer=null}openEaster3();return}
+    if(managerClickTimer)clearTimeout(managerClickTimer);
+    managerClickTimer=setTimeout(function(){managerClickCount=0},800);
+}
+function openEaster3(){soundSuccess();document.getElementById('easter3-bg').style.display='flex';
+    if(!easter3Unlocked){easter3Unlocked=true;if(state.achievements.indexOf('easter_manager')===-1){state.achievements.push('easter_manager');renderHubStats()}}
+    checkDeveloperEaster();
+}
+function closeEaster3(){soundClick();document.getElementById('easter3-bg').style.display='none'}
+
+function checkDeveloperEaster(){
+    if(state.achievements.indexOf('developer_easter')!==-1)return;
+    var allEasters=(state.achievements.indexOf('easter')!==-1)&&(state.achievements.indexOf('designer_easter')!==-1)&&(state.achievements.indexOf('easter_manager')!==-1);
+    var storyAch=countCompleted()>=4;
+    var perfectAch=false;
+    for(var k in state.done)if(state.done[k]===100)perfectAch=true;
+    var shopAch=(state.totalBuys>=1)&&(state.hints>=5||state.totalHints>=5)&&(state.doubleNext||state.doubleUsed);
+    var itemsAch=(state.opened.length>=16);
+    var miniAch=(state.minigameBest>=100);
+    var legAch=(state.legendary.length>=5);
+    if(allEasters&&storyAch&&perfectAch&&shopAch&&itemsAch&&miniAch&&legAch){
+        state.achievements.push('developer_easter');
+        renderHubStats();
+        showToast('🎉 Ты открыл СЕКРЕТНУЮ пасхалку разработчика!','gold');
+        setTimeout(function(){openEaster4()},1200);
+    }
+}
+function openEaster4(){soundSuccess();document.getElementById('easter4-bg').style.display='flex';
+    if(state.achievements.indexOf('developer_easter')===-1){state.achievements.push('developer_easter');renderHubStats()}
+}
+function closeEaster4(){soundClick();document.getElementById('easter4-bg').style.display='none'}
+
+function renderAchievements(){
+    var grid=document.getElementById('ach-grid');if(!grid)return;
+    grid.innerHTML='';
+    for(var i=0;i<ACHIEVEMENTS_LIST.length;i++){
+        var ach=ACHIEVEMENTS_LIST[i];
+        var unlocked=ach.check();
+        var card=document.createElement('div');
+        card.className='enc-card'+(unlocked?' legendary':' locked');
+        if(unlocked){
+            card.innerHTML='<div class="legendary-badge">✅ ПОЛУЧЕНО</div><div class="e-icon">'+ach.icon+'</div><div class="e-name">'+ach.name+'</div><div class="e-type">Достижение</div><div class="e-desc">'+(ach.secret?ach.hint:ach.desc)+'</div>';
+            if(ach.id==='easter_developer'){
+                card.style.cursor='pointer';
+                card.onclick=function(){openEaster4()};
+            }
+        }else{
+            card.innerHTML='<div class="e-icon">🔒</div><div class="e-name">???</div><div class="e-type">Не получено</div><div class="e-desc">'+ach.hint+'</div>';
+        }
+        grid.appendChild(card);
+    }
+    checkDeveloperEaster();
+}
+
+function renderHubStats(){
+    var c=0;for(var k in state.done)if(state.done[k]>0)c++;
+    var sc=document.getElementById('stat-coins');
+    var sl=document.getElementById('stat-levels');
+    var sa=document.getElementById('stat-ach');
+    if(sc)sc.textContent=state.coins;
+    if(sl)sl.textContent=c+'/4';
+    if(sa)sa.textContent=state.achievements.length+state.legendary.length;
+}
+
+function isLevelUnlocked(i){
+    if(i===0)return true;
+    var prev=LEVELS[i-1];
+    return state.done[prev.id]>0;
+}
+
+function renderMissions(){
+    var box=document.getElementById('missions');
+    if(!box)return;
+    box.innerHTML='';
+    for(var i=0;i<LEVELS.length;i++){
+        var lvl=LEVELS[i];
+        var unlocked=isLevelUnlocked(i);
+        var completed=state.done[lvl.id]>0;
+        var card=document.createElement('div');
+        card.className='mission';
+        if(!unlocked)card.classList.add('locked');
+        if(completed)card.classList.add('done');
+        var status;
+        if(completed)status='Пройдено · '+state.done[lvl.id]+'/100';
+        else if(unlocked)status='Доступно';
+        else status='🔒 Заблокировано';
+        card.innerHTML='<div class="m-icon">'+lvl.icon+'</div>'+
+                       '<div class="m-title">'+lvl.title+'</div>'+
+                       '<div class="m-desc">'+lvl.mission+'</div>'+
+                       '<div class="m-status">'+status+'</div>';
+        if(unlocked){
+            (function(level){card.onclick=function(){soundSelect();startLevel(level)}})(lvl);
+        }else{
+            card.onclick=function(){soundError();showToast('Сначала пройди предыдущий уровень','bad')};
+        }
+        box.appendChild(card);
+    }
+}
+
+function renderShop(){
+    document.getElementById('shop-coins').textContent=state.coins;
+    document.getElementById('shop-hints').textContent=state.hints;
+    var grid=document.getElementById('shop-grid');grid.innerHTML='';
+    for(var i=0;i<SHOP_ITEMS.length;i++){
+        var it=SHOP_ITEMS[i];
+        var card=document.createElement('div');
+        card.className='shop-item';
+        var btnHtml;
+        if(it.type==='freecoins')btnHtml='<button class="s-btn" onclick="buyFreeCoins()">Получить +100</button>';
+        else{var canBuy=state.coins>=it.price;btnHtml='<button class="s-btn" '+(canBuy?'':'disabled')+' onclick="buyItem(\''+it.id+'\')">Купить</button>'}
+        card.innerHTML='<div class="s-icon">'+it.icon+'</div><div class="s-name">'+it.name+'</div><div class="s-desc">'+it.desc+'</div><div class="s-price">'+(it.type==='freecoins'?'Бесплатно':it.price+' очков')+'</div>'+btnHtml;
+        grid.appendChild(card);
+    }
+}
+function buyFreeCoins(){soundCoin();state.coins+=100;state.totalBuys++;renderShop();showToast('+100 очков','gold')}
+function buyItem(id){
+    soundBuy();
+    var it=null;for(var i=0;i<SHOP_ITEMS.length;i++)if(SHOP_ITEMS[i].id===id)it=SHOP_ITEMS[i];
+    if(!it)return;
+    if(state.coins<it.price){soundError();showToast('Недостаточно очков!','bad');return}
+    state.coins-=it.price;
+    state.totalBuys++;
+    if(it.type==='hint'){state.hints+=1;state.totalHints++;showToast('Куплена подсказка! Всего: '+state.hints,'good')}
+    else if(it.type==='hint5'){state.hints+=5;state.totalHints+=5;showToast('+5 подсказок! Всего: '+state.hints,'good')}
+    else if(it.type==='skip'){
+        for(var j=0;j<LEVELS.length;j++){
+            if(!state.done[LEVELS[j].id]){
+                state.done[LEVELS[j].id]=50;
+                showToast('Уровень пропущен: '+LEVELS[j].title,'gold');
+                break;
+            }
+        }
+    }
+    else if(it.type==='double'){state.doubleNext=true;state.doubleUsed=true;showToast('Двойные очки активированы','gold')}
+    renderShop();
+    checkDeveloperEaster();
+}
+
+function renderLab(){
+    var grid=document.getElementById('lab-grid');grid.innerHTML='';
+    for(var id in ITEMS){
+        var it=ITEMS[id];
+        var type=it.layer===1?'Базовый слой':it.layer===2?'Средний слой':it.layer===3?'Внешний слой':'Аксессуар';
+        var card=document.createElement('div');
+        card.className='lab-card';
+        card.innerHTML='<div class="l-icon">'+it.icon+'</div><div class="l-name">'+it.name+'</div><div class="l-short">'+it.short+'</div><div class="l-type">'+type+'</div><div class="l-desc">'+it.desc+'</div><div class="l-lesson">'+it.lesson+'</div><div class="l-stats">Тепло '+it.warmth+' · Дышит '+it.breath+' · Вода '+it.water+' · Ветер '+it.wind+'</div>';
+        grid.appendChild(card);
+    }
+}
+
+function renderEnc(){
+    var grid=document.getElementById('enc-grid');grid.innerHTML='';
+    for(var lid in LEGENDARY){
+        var leg=LEGENDARY[lid];var unlocked=state.legendary.indexOf(lid)!==-1;
+        var card=document.createElement('div');
+        card.className='enc-card'+(unlocked?' legendary':' locked');
+        if(unlocked)card.innerHTML='<div class="legendary-badge">⭐ ЛЕГЕНДАРНЫЙ</div><div class="e-icon">'+leg.icon+'</div><div class="e-name">'+leg.name+'</div><div class="e-short">'+leg.short+'</div><div class="e-type">Легендарный материал</div><div class="e-desc">'+leg.desc+'</div><div class="e-lesson">💡 '+leg.lesson+'</div>';
+        else card.innerHTML='<div class="e-icon">🔒</div><div class="e-name">???</div><div class="e-type">Найди в миссиях</div><div class="e-desc">Пройди уровень, чтобы открыть</div>';
+        grid.appendChild(card);
+    }
+    for(var id in ITEMS){
+        var it=ITEMS[id];
+        var unlocked=state.opened.indexOf(id)!==-1||isItemSeenInDone(id);
+        var card=document.createElement('div');
+        card.className='enc-card'+(unlocked?'':' locked');
+        if(unlocked){var type=it.layer===1?'Базовый слой':it.layer===2?'Средний слой':it.layer===3?'Внешний слой':'Аксессуар';card.innerHTML='<div class="e-icon">'+it.icon+'</div><div class="e-name">'+it.name+'</div><div class="e-short">'+it.short+'</div><div class="e-type">'+type+'</div><div class="e-desc">'+it.desc+'</div><div class="e-lesson">💡 '+it.lesson+'</div>';}
+        else card.innerHTML='<div class="e-icon">🔒</div><div class="e-name">???</div><div class="e-type">Не открыто</div><div class="e-desc">Надень этот предмет</div>';
+        grid.appendChild(card);
+    }
+}
+function isItemSeenInDone(id){for(var lvlId in state.done){if(state.done[lvlId]>0&&AVAILABLE[lvlId]&&AVAILABLE[lvlId].indexOf(id)!==-1)return true}return false}
+
+function startLevel(level){
+    state.level=level;state.eq={1:null,2:null,3:null,4:null};state.patterns={1:'none',2:'none',3:'none'};
+    document.getElementById('char-name').textContent=level.char;
+    var reqText=level.required.length===4?'Нужны все 4 слоя':'Обязательные слои: '+level.required.join(', ');
+    document.getElementById('weather').innerHTML='<h2>'+level.icon+' '+level.title+'</h2><p>'+level.mission+'</p><p class="weather-stats">'+level.temp+'°C · Ветер '+level.wind+' · Влажность '+level.hum+'%</p><span class="layer-hint">📋 '+reqText+'</span>';
+    document.getElementById('result').style.display='none';
+    document.getElementById('hp-bar').style.width='100%';document.getElementById('hp-val').textContent='100%';
+    document.getElementById('dry-bar').style.width='100%';document.getElementById('dry-val').textContent='100%';
+    document.getElementById('editor').style.display='none';
+    document.getElementById('char-box').className='char-box '+level.bg;
+    showScreen('game');renderSlots();renderInv();renderChar();renderWorn();
+}
+function resetEquipment(){soundClick();state.eq={1:null,2:null,3:null,4:null};state.patterns={1:'none',2:'none',3:'none'};renderSlots();renderInv();renderChar();renderWorn();showToast('Экипировка сброшена','good')}
+function renderSlots(){
+    for(var L=1;L<=4;L++){
+        var box=document.getElementById('slots-'+L);box.innerHTML='';
+        var id=state.eq[L],slot=document.createElement('div');
+        slot.className='slot'+(id?' filled':'');
+        if(id&&ITEMS[id])slot.innerHTML='<span class="icon">'+ITEMS[id].icon+'</span><span class="name">'+ITEMS[id].name+'</span>';
+        else slot.innerHTML='<span class="empty-text">— пусто —</span>';
+        (function(layer){slot.onclick=function(){openModal(layer)}})(L);
+        box.appendChild(slot);
+    }
+}
+function renderInv(){
+    var box=document.getElementById('inv');box.innerHTML='';
+    var available=AVAILABLE[state.level.id]||[];
+    var names={1:"Базовый",2:"Средний",3:"Внешний",4:"Аксессуар"};
+    for(var L=1;L<=4;L++){
+        var h=document.createElement('div');
+        h.style.cssText="color:#667eea;font-size:11px;margin:12px 0 8px;font-weight:800;text-transform:uppercase;letter-spacing:1px;";
+        h.textContent=L+'. '+names[L];box.appendChild(h);
+        for(var j=0;j<available.length;j++){
+            var id=available[j],it=ITEMS[id];
+            if(!it||it.layer!==L)continue;
+            var d=document.createElement('div');
+            d.className='inv-item'+(state.eq[L]===id?' selected':'');
+            d.innerHTML='<div class="name">'+it.icon+' '+it.name+'</div><div class="short">'+it.short+'</div><div class="stats">Тепло '+it.warmth+' · Дышит '+it.breath+' · Вода '+it.water+' · Ветер '+it.wind+'</div><div class="desc">'+it.desc+'</div>';
+            (function(itemId,layer){d.onclick=function(){pickItem(itemId,layer)}})(id,L);
+            box.appendChild(d);
+        }
+    }
+}
+function pickItem(id,layer){soundSelect();state.eq[layer]=id;if(state.opened.indexOf(id)===-1)state.opened.push(id);renderSlots();renderInv();renderChar();renderWorn();if(state.eq[1]||state.eq[2]||state.eq[3]){document.getElementById('editor').style.display='block';renderEditor()}closeModal();checkDeveloperEaster()}
+function renderEditor(){
+    var row=document.getElementById('color-row');row.innerHTML='';
+    var colors=['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e','#2c3e50','#c0392b'];
+    for(var i=0;i<colors.length;i++){
+        var btn=document.createElement('div');btn.className='color-btn';btn.style.background=colors[i];
+        (function(c){btn.onclick=function(){soundClick();for(var L=1;L<=3;L++){if(state.eq[L]){state.customColors[state.eq[L]]=c;break}}renderChar()}})(colors[i]);
+        row.appendChild(btn);
+    }
+    var pRow=document.getElementById('pattern-row');pRow.innerHTML='';
+    var patterns=[{id:'none',icon:'⬜'},{id:'stripes',icon:'▤'},{id:'dots',icon:'⬤'},{id:'stars',icon:'⭐'}];
+    for(var p=0;p<patterns.length;p++){
+        var pBtn=document.createElement('div');pBtn.className='pattern-btn';pBtn.textContent=patterns[p].icon;
+        (function(patId){pBtn.onclick=function(){soundClick();for(var L=1;L<=3;L++){if(state.eq[L])state.patterns[L]=patId}renderChar();renderEditor()}})(patterns[p].id);
+        pRow.appendChild(pBtn);
+    }
+}
+function getItemColor(itemId){return state.customColors[itemId]||ITEMS[itemId].color}
+function renderChar(){
+    var cloths=document.querySelectorAll('.cloth');for(var i=0;i<cloths.length;i++)cloths[i].classList.remove('on');
+    var eq=state.eq;
+    if(eq[1]&&ITEMS[eq[1]]){var c1=getItemColor(eq[1]);var paths=document.querySelectorAll('#cloth-base path');for(var k=0;k<paths.length;k++)paths[k].setAttribute('fill',c1);document.getElementById('cloth-base').classList.add('on');applyPattern('cloth-base-pat',state.patterns[1])}
+    if(eq[2]&&ITEMS[eq[2]]){var c2=getItemColor(eq[2]);var paths=document.querySelectorAll('#cloth-mid path');for(var k=0;k<paths.length;k++)paths[k].setAttribute('fill',c2);document.getElementById('cloth-mid').classList.add('on');applyPattern('cloth-mid-pat',state.patterns[2])}
+    if(eq[3]&&ITEMS[eq[3]]){var c3=getItemColor(eq[3]);var paths=document.querySelectorAll('#cloth-outer path');for(var k=0;k<paths.length;k++)paths[k].setAttribute('fill',c3);document.getElementById('cloth-outer').classList.add('on');applyPattern('cloth-outer-pat',state.patterns[3])}
+    if(eq[4]&&eq[4]!=='umbrella'&&ITEMS[eq[4]]){var c4=getItemColor(eq[4]);var paths=document.querySelectorAll('#cloth-hat path, #cloth-hat circle');for(var k=0;k<paths.length;k++)paths[k].setAttribute('fill',c4);document.getElementById('cloth-hat').classList.add('on')}
+    if(eq[4]==='umbrella')document.getElementById('cloth-umbrella').classList.add('on');
+}
+function applyPattern(elementId,pattern){var el=document.getElementById(elementId);if(pattern==='stripes')el.setAttribute('fill','url(#pat-stripes)');else if(pattern==='dots')el.setAttribute('fill','url(#pat-dots)');else if(pattern==='stars')el.setAttribute('fill','url(#pat-stars)');else if(pattern==='gradient')el.setAttribute('fill','url(#pat-gradient)');else el.setAttribute('fill','transparent');el.classList.add('on')}
+function renderWorn(){
+    var list=document.getElementById('worn-list');list.innerHTML='';
+    var names={1:"Базовый",2:"Средний",3:"Внешний",4:"Голова"};
+    for(var L=1;L<=4;L++){
+        var id=state.eq[L],item=document.createElement('div');
+        var required=state.level&&state.level.required.indexOf(L)!==-1;
+        if(id&&ITEMS[id]){item.className='worn-item'+(required?' required':'');item.textContent=ITEMS[id].icon+' '+ITEMS[id].name+(required?' ✓':'')}
+        else{item.className='worn-item empty';item.textContent='+ '+names[L]+' слой'+(required?' (обязательно)':'')}
+        list.appendChild(item);
+    }
+}
+function openModal(layer){
+    soundClick();
+    var bg=document.getElementById('modal-bg'),title=document.getElementById('modal-title'),items=document.getElementById('modal-items');
+    var names={1:"Базовый слой",2:"Средний слой",3:"Внешний слой",4:"Аксессуар"};
+    title.textContent=names[layer];items.innerHTML='';
+    var hintBtn=document.createElement('div');hintBtn.className='inv-item';
+    if(state.hints>0){
+        hintBtn.style.borderColor='#f39c12';hintBtn.style.background='linear-gradient(135deg, #fff8e0, #ffe8b0)';
+        hintBtn.innerHTML='<div class="name" style="color:#f39c12;">💡 Использовать подсказку (осталось: '+state.hints+')</div><div class="desc" style="color:#a07d00;">Робот сам наденет правильный предмет</div>';
+        hintBtn.onclick=function(){
+            soundSelect();var correct=getCorrectForLevel(state.level);if(!correct)return;
+            var suggested=correct[layer];
+            if(suggested===null||suggested===undefined){state.hints--;closeModal();showToast('💡 Для слоя «'+names[layer]+'» предмет не нужен','gold');return}
+            if(ITEMS[suggested]){state.eq[layer]=suggested;if(state.opened.indexOf(suggested)===-1)state.opened.push(suggested);state.hints--;renderSlots();renderInv();renderChar();renderWorn();if(state.eq[1]||state.eq[2]||state.eq[3]){document.getElementById('editor').style.display='block';renderEditor()}closeModal();showToast('💡 Робот надел: '+ITEMS[suggested].icon+' '+ITEMS[suggested].name,'gold');return}
+            state.hints--;closeModal();showToast('💡 Подсказка не помогла','bad');
+        };
+    }else{
+        hintBtn.style.borderColor='#ccc';hintBtn.style.background='#f5f5f8';
+        hintBtn.innerHTML='<div class="name" style="color:#999;">💡 Подсказок нет</div><div class="desc" style="color:#999;">Купи в магазине за 100 очков</div>';
+        hintBtn.onclick=function(){soundError();showToast('❌ У тебя нет подсказок!','bad')};
+    }
+    items.appendChild(hintBtn);
+    var none=document.createElement('div');none.className='inv-item';
+    none.innerHTML='<div class="name">Ничего не надевать</div>';
+    none.onclick=function(){soundClick();state.eq[layer]=null;renderSlots();renderInv();renderChar();renderWorn();closeModal()};
+    items.appendChild(none);
+    var available=AVAILABLE[state.level.id]||[];
+    for(var j=0;j<available.length;j++){
+        var id=available[j],it=ITEMS[id];
+        if(!it||it.layer!==layer)continue;
+        var d=document.createElement('div');d.className='inv-item'+(state.eq[layer]===id?' selected':'');
+        d.innerHTML='<div class="name">'+it.icon+' '+it.name+'</div><div class="short">'+it.short+'</div><div class="stats">Тепло '+it.warmth+' · Дышит '+it.breath+' · Вода '+it.water+' · Ветер '+it.wind+'</div><div class="desc">'+it.desc+'</div>';
+        (function(itemId,l){d.onclick=function(){pickItem(itemId,l)}})(id,layer);
+        items.appendChild(d);
+    }
+    bg.style.display='flex';
+}
+function getCorrectForLevel(lvl){if(!lvl)return null;if(lvl.id==='yakutsk')return{1:'wool',2:'down',3:'arctic',4:'furhat'};if(lvl.id==='vietnam')return{1:'poly',2:null,3:'light',4:'widehat'};if(lvl.id==='london')return{1:'cotton',2:'fleece',3:'softshell',4:'widehat'};if(lvl.id==='sahara')return{1:'linen',2:null,3:'linenrobe',4:'widehat'};return null}
+function closeModal(){soundClick();document.getElementById('modal-bg').style.display='none'}
+
+function runSim(){
+    soundClick();
+    var lvl=state.level,eq=state.eq;
+    var hp=100,dry=100,reasons=[],lessons=[],criticalFail=false;
+    var charBox=document.getElementById('char-box');
+    charBox.classList.remove('freezing','perfect');
+    for(var i=0;i<lvl.required.length;i++){
+        var reqL=lvl.required[i];
+        if(!eq[reqL]){criticalFail=true;hp=0;var rn={1:"базовый",2:"средний",3:"внешний",4:"аксессуар"};reasons.push("Не надет обязательный "+rn[reqL]+" слой.")}
+    }
+    if(!criticalFail&&lvl.forbid){
+        for(var L=1;L<=4;L++){
+            var id=eq[L];
+            if(id&&lvl.forbid.indexOf(id)!==-1){criticalFail=true;hp=0;reasons.push("Предмет «"+ITEMS[id].name+"» не подходит для этих условий.");lessons.push(ITEMS[id].lesson)}
+        }
+    }
+    if(!criticalFail){
+        if(lvl.idealBase&&lvl.idealBase.indexOf(eq[1])===-1){hp-=30;reasons.push("Базовый слой не подходит.");if(ITEMS[eq[1]])lessons.push(ITEMS[eq[1]].lesson)}
+        if(lvl.required.indexOf(2)!==-1&&lvl.idealMid&&lvl.idealMid.indexOf(eq[2])===-1){hp-=25;reasons.push("Средний слой слабоват.");if(ITEMS[eq[2]])lessons.push(ITEMS[eq[2]].lesson)}
+        if(lvl.idealOuter&&lvl.idealOuter.indexOf(eq[3])===-1){hp-=30;reasons.push("Внешний слой не защищает.");if(ITEMS[eq[3]])lessons.push(ITEMS[eq[3]].lesson)}
+        if(lvl.idealAcc&&lvl.idealAcc.indexOf(eq[4])===-1){hp-=25;reasons.push("Аксессуар не подходит.");if(ITEMS[eq[4]])lessons.push(ITEMS[eq[4]].lesson)}
+    }
+    if(hp<0)hp=0;if(dry<0)dry=0;
+    document.getElementById('hp-bar').style.width=hp+'%';document.getElementById('hp-val').textContent=hp+'%';
+    document.getElementById('dry-bar').style.width=dry+'%';document.getElementById('dry-val').textContent=dry+'%';
+    var r=document.getElementById('result');r.style.display='block';
+    if(hp>=70&&!criticalFail){
+        soundSuccess();charBox.classList.add('perfect');
+        r.style.background='linear-gradient(135deg, #d0f5e0, #b0e8c0)';r.style.border='2px solid #38ef7d';
+        var earned=hp+50;if(state.doubleNext){earned=earned*2;state.doubleNext=false}state.coins+=earned;
+        var legendaryUnlocked=null;
+        for(var lid in LEGENDARY){if(LEGENDARY[lid].unlockedBy===lvl.id&&state.legendary.indexOf(lid)===-1){state.legendary.push(lid);legendaryUnlocked=LEGENDARY[lid];break}}
+        var lessonHtml=lessons.length>0?'<div style="margin-top:10px;"><b>Что ты узнал:</b><ul>'+lessons.map(function(l){return '<li>'+l+'</li>'}).join('')+'</ul></div>':'<div style="margin-top:10px;">Идеально! Три слоя работают вместе.</div>';
+        var legendHtml=legendaryUnlocked?'<div style="margin-top:12px; padding:12px; background:linear-gradient(135deg,#fff8e0,#ffe8b0); border-radius:12px; border-left:4px solid #f7b733;"><div style="font-size:11px; color:#f7b733; font-weight:800; text-transform:uppercase;">⭐ Найден легендарный материал</div><div style="font-size:16px; font-weight:800; margin-top:6px;">'+legendaryUnlocked.icon+' '+legendaryUnlocked.name+'</div></div>':'';
+        var nextBtnHtml='';
+        var nextIndex=-1;for(var i=0;i<LEVELS.length;i++)if(LEVELS[i].id===lvl.id)nextIndex=i;
+        if(nextIndex>=0&&nextIndex<LEVELS.length-1)nextBtnHtml='<button class="btn green" style="width:100%; margin-top:12px;" onclick="goToNextLevel()">Следующая миссия</button>';
+        else nextBtnHtml='<button class="btn gold" style="width:100%; margin-top:12px;" onclick="showHub()">Завершить</button>';
+        r.innerHTML='<div style="font-size:15px;"><b>Успех! Рейтинг: '+hp+'/100</b></div><div style="margin-top:6px; color:#f39c12; font-weight:800;">Получено очков: +'+earned+'</div>'+lessonHtml+legendHtml+nextBtnHtml;
+        if(!state.done[lvl.id]||state.done[lvl.id]<hp)state.done[lvl.id]=hp;
+        if(hp===100)unlockAchievement('Идеальный баланс');
+        if(countCompleted()===1)unlockAchievement('Первая миссия');
+        if(countCompleted()===4)unlockAchievement('Все миссии пройдены');
+    }else{
+        soundFail();charBox.classList.add('freezing');
+        r.style.background='linear-gradient(135deg, #ffe0e0, #ffc0c0)';r.style.border='2px solid #ff4757';
+        var reasonsHtml='<div style="margin-top:8px;"><b>Почему провал:</b><ul>'+reasons.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></div>';
+        var lessonsFailHtml=lessons.length>0?'<div style="margin-top:8px;"><b>Что запомнить:</b><ul>'+lessons.map(function(l){return '<li>'+l+'</li>'}).join('')+'</ul></div>':'';
+        r.innerHTML='<div style="font-size:15px;"><b>Провал. Рейтинг: '+hp+'/100</b></div>'+reasonsHtml+lessonsFailHtml;
+    }
+    checkDeveloperEaster();
+}
+function countCompleted(){var c=0;for(var k in state.done)if(state.done[k]>0)c++;return c}
+function goToNextLevel(){soundClick();var currentId=state.level.id;var nextIdx=-1;for(var i=0;i<LEVELS.length;i++)if(LEVELS[i].id===currentId)nextIdx=i+1;if(nextIdx>=0&&nextIdx<LEVELS.length)startLevel(LEVELS[nextIdx]);else showHub()}
+
+function unlockAchievement(name){if(state.achievements.indexOf(name)!==-1)return;state.achievements.push(name);soundAchievement();var ach=document.getElementById('achievement');document.getElementById('achievement-name').textContent=name;ach.classList.add('show');setTimeout(function(){ach.classList.remove('show')},3500)}
+
+var mg={active:false,score:0,lives:3,time:30,currentParticle:null,timer:null,particleTimeout:null};
+function openMinigame(){soundClick();document.getElementById('minigame-bg').style.display='flex';startMinigame()}
+function closeMinigame(){soundClick();document.getElementById('minigame-bg').style.display='none';mg.active=false;if(mg.timer)clearInterval(mg.timer);if(mg.particleTimeout)clearTimeout(mg.particleTimeout);if(mg.score>0){state.coins+=mg.score;showToast('+'+mg.score+' очков','gold')}showHub();checkDeveloperEaster()}
+function startMinigame(){
+    if(mg.timer)clearInterval(mg.timer);if(mg.particleTimeout)clearTimeout(mg.particleTimeout);
+    mg={active:true,score:0,lives:3,time:30,currentParticle:null,timer:null,particleTimeout:null};
+    document.getElementById('mg-score').textContent='0';
+    document.getElementById('mg-lives').textContent='❤️❤️❤️';
+    document.getElementById('mg-time').textContent='30';
+    document.getElementById('mg-status').innerHTML='Нажимай «Пропустить пар» на пар и «Остановить каплю» на каплю';
+    document.getElementById('mg-status').className='mg-status';
+    document.getElementById('mg-close').style.display='none';
+    document.getElementById('active-particle').style.display='none';
+    mg.timer=setInterval(function(){if(!mg.active)return;mg.time--;document.getElementById('mg-time').textContent=mg.time;if(mg.time<=0)endMinigame()},1000);
+    setTimeout(spawnParticle,800);
+}
+function spawnParticle(){
+    if(!mg.active)return;
+    var isSteam=Math.random()>0.5;
+    mg.currentParticle=isSteam?'steam':'drop';
+    var el=document.getElementById('active-particle');
+    el.textContent=isSteam?'💨':'💧';el.style.display='block';el.style.top='35%';
+    mg.particleTimeout=setTimeout(function(){
+        if(!mg.active||mg.currentParticle===null)return;
+        mg.lives--;soundError();updateMgLives();
+        document.getElementById('mg-status').innerHTML='Не успел! -1 жизнь';
+        document.getElementById('mg-status').className='mg-status status-bad';
+        el.style.display='none';mg.currentParticle=null;
+        if(mg.lives<=0)endMinigame();else setTimeout(spawnParticle,600);
+    },2000);
+}
+function mgAction(action){
+    if(!mg.active||mg.currentParticle===null)return;
+    if(mg.particleTimeout)clearTimeout(mg.particleTimeout);
+    var isSteam=mg.currentParticle==='steam',isDrop=mg.currentParticle==='drop';
+    var correct=false,msg='';
+    if(action==='pass'&&isSteam){correct=true;msg='Правильно! +10'}
+    else if(action==='block'&&isDrop){correct=true;msg='Правильно! +10'}
+    else if(action==='pass'&&isDrop){msg='Ошибка! Капля промочит тебя'}
+    else if(action==='block'&&isSteam){msg='Ошибка! Пару нужно выходить'}
+    document.getElementById('active-particle').style.display='none';mg.currentParticle=null;
+    if(correct){soundSelect();mg.score+=10;document.getElementById('mg-score').textContent=mg.score;document.getElementById('mg-status').innerHTML=msg;document.getElementById('mg-status').className='mg-status status-good';setTimeout(spawnParticle,400)}
+    else{soundError();mg.lives--;updateMgLives();document.getElementById('mg-status').innerHTML=msg;document.getElementById('mg-status').className='mg-status status-bad';if(mg.lives<=0)endMinigame();else setTimeout(spawnParticle,600)}
+}
+function updateMgLives(){var s='';for(var i=0;i<3;i++)s+=i<mg.lives?'❤️':'🖤';document.getElementById('mg-lives').textContent=s}
+function endMinigame(){
+    mg.active=false;if(mg.timer)clearInterval(mg.timer);if(mg.particleTimeout)clearTimeout(mg.particleTimeout);
+    document.getElementById('active-particle').style.display='none';
+    if(mg.score>=50)soundSuccess();else soundFail();
+    if(mg.score>(state.minigameBest||0))state.minigameBest=mg.score;
+    var score=mg.score,msg='';
+    if(score>=100)msg='Отлично! '+score+' очков!';
+    else if(score>=50)msg='Хорошо! '+score+' очков.';
+    else msg=score+' очков.';
+    document.getElementById('mg-status').innerHTML=msg+'<br><b>+'+score+' очков в копилку!</b>';
+    document.getElementById('mg-status').className='mg-status';
+    document.getElementById('mg-close').style.display='block';
+}
+
+var loadingMessages=["Загрузка систем...","Проверка климатических данных...","Калибровка сенсоров...","Подготовка экипировки...","Связь с патрулём установлена!","Готово!"];
+function runLoading(){
+    var fill=document.getElementById('loading-fill'),status=document.getElementById('loading-status');
+    var progress=0,msgIndex=0;
+    var interval=setInterval(function(){
+        progress+=4+Math.random()*6;if(progress>=100)progress=100;
+        fill.style.width=progress+'%';
+        var newMsgIndex=Math.floor(progress/20);if(newMsgIndex>=loadingMessages.length)newMsgIndex=loadingMessages.length-1;
+        if(newMsgIndex!==msgIndex){msgIndex=newMsgIndex;status.textContent=loadingMessages[msgIndex]}
+        if(progress>=100){clearInterval(interval);setTimeout(function(){soundAchievement();document.getElementById('loading').classList.remove('active');document.getElementById('intro').classList.add('active')},500)}
+    },250);
+}
+document.addEventListener('click',function initOnce(){initAudio();if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();document.removeEventListener('click',initOnce)},{once:true});
+runLoading();
+</script>
+</body>
+</html>
